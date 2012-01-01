@@ -383,3 +383,29 @@ int glimpse_typesystem_instance_object_trylock(void* data)
 	return pthread_mutex_trylock(&ret->mutex);
 }
 #endif
+char** glimpse_typesystem_list_knowntypes()
+{
+	int i;
+	char** ret = (char**)malloc(sizeof(char*) * (_glimpse_typesystem_known_handler->size + 1));
+	if(NULL == ret) goto ERR;
+	memset(ret, 0, sizeof(char*) * (_glimpse_typesystem_known_handler->size + 1));
+	for(i = 0; i < _glimpse_typesystem_known_handler->size; i ++)
+	{
+		GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler, i);
+		char buffer[1024];
+		if(NULL == glimpse_typesystem_typehandler_tostring(handler, buffer, sizeof(buffer))) goto ERR;
+		int len = strlen(buffer);
+		ret[i] = (char*)malloc(len + 1);
+		if(NULL == ret[i]) goto ERR;
+		strcpy(ret[i], buffer);
+	}
+	return ret;
+ERR:
+	if(ret)
+	{
+		for(i = 0; i < _glimpse_typesystem_known_handler->size; i ++)
+			if(ret[i]) free(ret[i]);
+		free(ret);
+	}
+	return NULL;
+}

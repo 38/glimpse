@@ -201,6 +201,9 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type);
 int glimpse_typesystem_init();
 int glimpse_typesystem_cleanup();
 
+/* functions that used for cli interface */
+char** glimpse_typesystem_list_knowntypes();   /* get all string description of known handler, do not recycle memory */
+
 /* define inline functions */
 static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 {

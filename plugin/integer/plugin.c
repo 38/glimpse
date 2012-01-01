@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <integer/integer.h>
 #include <integer/fixlength.h>
+extern void alias_types();
+
 void* alloc_int(void* data)
 {
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)data;
@@ -138,6 +140,7 @@ int int_property_parser(const char* name, const char* value, void* buffer)
 		IFSTREQ(value,"8") prop->Size = GlimpseInteger8;
 		else IFSTREQ(value,"16") prop->Size = GlimpseInteger16;
 		else IFSTREQ(value,"32") prop->Size = GlimpseInteger32;
+		else IFSTREQ(value,"64") prop->Size = GlimpseInteger64;
 		else IFSTREQ(value,"variant") prop->Size = GlimpseIntegerVariant;
 		else PLUGIN_LOG_WARNING("invaild integer size %s", value);
 	}
@@ -172,6 +175,7 @@ GlimpseTypeGroup_t int_type_group = {
 int init()
 {
 	RegisterTypeGroup(&int_type_group);
+	alias_types();
 	return 0;
 }
 GlimpsePluginMetaData(TypeAPI)

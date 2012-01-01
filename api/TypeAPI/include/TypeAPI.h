@@ -16,6 +16,7 @@ GlimpseAPIData(TypeAPI)
 		int   (*DataObjUnlock)(void* data);
 		int   (*DataObjTrylock)(void* data);
 		char* (*StringDuplicate)(const char*);
+		int	  (*TypeAlias)(const char* type, const char* name);
 	GlimpseAPIFunctionsEnd
 	//called by API
 	GlimpsePluginFunctions
@@ -33,6 +34,7 @@ void Glimpse_TypeAPI_init(void);
 #define ObjAlloc(size) GlimpseAPICall(TypeAPI, DataObjAlloc, size)
 #define ObjFree(mem) GlimpseAPICall(TypeAPI, DataObjFree, mem)
 #define StrDup(str) GlimpseAPICall(TypeAPI, StringDuplicate, str)
+#define Alias(t,n) GlimpseAPICall(TypeAPI, TypeAlias, t, n)
 
 #ifdef THREAD_SAFE
 #define DataLock(data) GlimpseAPICall(TypeAPI, DataObjLock, data)

@@ -105,7 +105,7 @@ void random_case()
 	prop->Signed = rand()&1;
 	prop->Representation = rand()%GlimpseIntegerRepresentationCount;
 	GlimpseTypeHandler_t *handler = glimpse_typesystem_query(td);
-	if(NULL == handler) return;
+	if(NULL == handler) goto RET;
 	long long tmp = 0;
 	handler->parse("1", &tmp, handler->parse_data, thread_data);
 	assert(tmp == 1);
@@ -127,13 +127,14 @@ void random_case()
 		const char* rc = handler->parse(input, &returned, handler->parse_data, thread_data);
 		assert(returned == expect);
 	}
+RET:
 	glimpse_thread_data_free(thread_data);
 }
 int main()
 {
 	int i = 0;
 	srand((unsigned)time(NULL));
-	glimpse_typesystem_init();
+	glimpse_init();
 	Glimpse_TypeAPI_init();
 	glimpse_pluginloader_path[0] = ".";
 	glimpse_pluginloader_path[1] = "..";
@@ -145,7 +146,6 @@ int main()
 		random_case();
 		GLIMPSE_LOG_INFO("random case #%d passed", i);
 	}
-	glimpse_pluginloader_cleanup();
-	glimpse_typesystem_cleanup();
+	glimpse_cleanup();
 	return 0;
 }
