@@ -15,3 +15,17 @@
 *.exe
 *.out
 *.app
+
+#vim files
+*.swp
+
+#tests
+test/test_*
+
+#tags
+tags
+
+#CMakeFiles
+CMakeCache.txt
+CMakeFiles/*
+*.cmake
