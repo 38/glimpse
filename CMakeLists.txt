@@ -20,6 +20,13 @@ macro(add_api prefix apiname)
 	add_library(${apiname} ${api_FILES})
 endmacro(add_api)
 
+macro(add_plugin prefix plugin apidir)
+	aux_source_directory(${prefix}/${plugin} plugin_FILES)
+	set_source_files_properties(${plugin_FILES} PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -I${apidir}/include)
+	add_library(${plugin} SHARED ${plugin_FILES})
+	set_target_properties(${plugin} PROPERTIES LINK_FLAGS ${LDFLAGS}\ -fPIC)
+endmacro(add_plugin)
+
 #test
 macro(add_utest testname)
 	set(__sources__ test/${testname}.c)
@@ -43,3 +50,4 @@ endmacro(add_utest_with_api)
 add_utest(log)
 add_api(test/api testapi)
 add_utest_with_api(api testapi test/api/testapi)
+add_plugin(test/plugin testapi_plugin test/api/testapi)

@@ -79,8 +79,7 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 
 	errval = EINVAILDARG;
 	if(NULL == handler->MetaData->Name || 
-	   NULL == handler->MetaData->APIVersion || 
-	   NULL == handler->MetaData->Dependency)
+	   NULL == handler->MetaData->APIVersion) 
 	{
 		GLIMPSE_LOG_ERROR("Invalid Plugin");
 		goto ERR;
@@ -101,7 +100,7 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 	}
 	
 	int i;
-	for(i = 0; handler->MetaData->Dependency[i]; i ++)
+	for(i = 0; handler->MetaData->Dependency && handler->MetaData->Dependency[i]; i ++)
 	{
 		char temp[128];
 		strncpy(temp, handler->MetaData->Dependency[i], sizeof(temp));
