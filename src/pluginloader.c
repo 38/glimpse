@@ -70,7 +70,7 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 	
 	errval = ESYMNOTFOUND;
 	GetMetaData_proc proc;
-	proc = (GetMetaData_proc)dlsym(handler, "GetMetaData");
+	proc = (GetMetaData_proc)dlsym(handler->dl_handler, "GetMetaData");
 	if(NULL == proc) goto ERR;
 	
 	errval = EUNKNOWN;
