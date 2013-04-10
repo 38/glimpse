@@ -40,6 +40,11 @@ GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* name)
 	GlimpsePluginHandler_t* ret = (GlimpsePluginHandler_t*)malloc(sizeof(GlimpsePluginHandler_t));
 	char path[1024];
 	if(NULL == ret) goto ERR;
+	ret->MetaData = NULL;
+	ret->dl_handler = NULL;
+	ret->API = NULL;
+	ret->index = -1;
+	ret->initialized = 0;
 	for(i = 0; glimpse_pluginloader_path[i]; i ++)
 	{
 		snprintf(path, 1024, "%s/lib%s.so", glimpse_pluginloader_path[i], name);
@@ -94,12 +99,40 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 		goto ERR;
 	}
 	
-	//TODO: resolve dependency
 	int i;
 	for(i = 0; handler->MetaData->Dependency[i]; i ++)
 	{
-		
+		char temp[128];
+		strncpy(temp, handler->MetaData->Dependency[i], sizeof(temp));
+		char* vercode = strstr(temp, "@");
+		*vercode = 0;
+		vercode ++;
+		GlimpsePluginVersion min_version;
+		int j, index = 0;
+		errval = EINVALIDVERCODE;
+		for(j = 0; j < 3; j ++)
+		{
+			min_version[j] = 0;
+			for(;vercode[index] && vercode[index] != '.'; index ++)
+			{
+				if(vercode[index] < '0' || vercode[index] > '9') goto ERR;
+				min_version[j] = min_version[j] * 10 + (vercode[index] - '0');
+			}
+			if(vercode[index]) index ++; 
+		}
+		errval = EDEPEND;
+		GlimpsePluginHandler_t* handler = _glimpse_pluginloader_find_plugin(handler->MetaData->Name);
+		if(NULL == handler) goto ERR;
+		if(handler->initialized == 2) continue; /* the plugin is already in use */
+		if(handler->initialized == 1)
+		{
+			GLIMPSE_LOG_ERROR("loop dependence detected");
+			goto ERR;
+		}
+		handler->initialized = 1;
+		_glimpse_pluginloader_initilaize_plugin(handler);
 	}
+	handler->initialized = 2;
 	return ESUCCESS;
 ERR:
 	if(handler)

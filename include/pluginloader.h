@@ -11,6 +11,8 @@
 #endif
 
 typedef struct _glimpse_plugin_handler{
+	int index;
+	int  initialized;
 	GlimpsePluginMetaData_t* MetaData;
 	GlimpseAPIMetaData_t* API;
 	void* dl_handler;

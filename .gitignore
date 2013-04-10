@@ -29,3 +29,4 @@ tags
 CMakeCache.txt
 CMakeFiles/*
 *.cmake
+Makefile

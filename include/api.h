@@ -8,4 +8,7 @@ typedef struct _glimpse_api_metadata_t{
 	int (*PluginInitialize)(void* metadata);  /*Called after plugin loaded, passing handlers to plugin*/
 	int (*PluginFinalize)(void* metadata);	  /*Called befor plugin unloaded, clean up*/
 }GlimpseAPIMetaData_t;
+#define GlimpseAPIData(name) typedef struct _glimpse_api_proc_##name GlimpseAPIProc##name;\
+	struct _glimpse_api_proc_##name{
+#define GlimpseAPIDataEnd(name)
 #endif
