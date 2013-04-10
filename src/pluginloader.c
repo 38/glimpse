@@ -20,6 +20,7 @@ int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API)
 		return ETOOMANYAPI;
 	}
 	_glimpse_pluginloader_api_list[_glimpse_pluginloader_api_count++] = API;
+	GLIMPSE_LOG_DEBUG("API %s Registered.", API->APIVersion);
 	return ESUCCESS;
 }
 GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* version)

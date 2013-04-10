@@ -10,5 +10,7 @@ typedef struct _glimpse_api_metadata_t{
 }GlimpseAPIMetaData_t;
 #define GlimpseAPIData(name) typedef struct _glimpse_api_proc_##name GlimpseAPIProc##name;\
 	struct _glimpse_api_proc_##name{
-#define GlimpseAPIDataEnd(name)
+#define GlimpseAPIDataEnd };
+#define GlimpseAPIDataType(name) GlimpseAPIProc##name
+#define GlimpseAPIInit(name)
 #endif
