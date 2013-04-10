@@ -9,4 +9,5 @@
 #define EMALFORMEDAPI -6
 #define EINVALIDVERCODE -7
 #define EDEPEND -8
+#define EVERSION -9
 #endif

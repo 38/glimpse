@@ -9,6 +9,7 @@ int init(void* meta)
 	GlimpseAPIDataType(testapi) *data = (GlimpseAPIDataType(testapi)*) meta;
 	data->add = add;
 	data->done();
+	return 0;
 }
 GlimpseAPIMetaData_t metadata = {
 	.APIVersion = "testapi",

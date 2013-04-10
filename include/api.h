@@ -13,4 +13,5 @@ typedef struct _glimpse_api_metadata_t{
 #define GlimpseAPIDataEnd };
 #define GlimpseAPIDataType(name) GlimpseAPIProc##name
 #define GlimpseAPIInit(name)
+#include <plugin.h>
 #endif

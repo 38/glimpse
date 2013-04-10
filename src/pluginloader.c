@@ -29,14 +29,14 @@ GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* vers
 	for(i = 0; i < _glimpse_pluginloader_api_count; i ++)
 		if(strcmp(_glimpse_pluginloader_api_list[i]->APIVersion, version) == 0) 
 			return _glimpse_pluginloader_api_list[i];
-	GLIMPSE_LOG_DEBUG("can not find API");
+	GLIMPSE_LOG_WARNING("can not find API %s", version);
 	return NULL;
 }
 GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* name)
 {
 	int i;
 	for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
-		if(strcmp(_glimpse_pluginloader_plugin_list[i]->MetaData->Name, name))
+		if(strcmp(_glimpse_pluginloader_plugin_list[i]->MetaData->Name, name) == 0)
 			return _glimpse_pluginloader_plugin_list[i];
 	GlimpsePluginHandler_t* ret = (GlimpsePluginHandler_t*)malloc(sizeof(GlimpsePluginHandler_t));
 	char path[1024];
@@ -51,8 +51,11 @@ GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* name)
 		snprintf(path, 1024, "%s/lib%s.so", glimpse_pluginloader_path[i], name);
 		if(0 == access(path, R_OK))
 		{
-			if((ret->dl_handler = dlopen(path, RTLD_NOW))) 
+			if((ret->dl_handler = dlopen(path, RTLD_NOW)))
+			{
+				GLIMPSE_LOG_TRACE("using %s as plugin %s", path, name);
 				return ret;
+			}
 			else
 				GLIMPSE_LOG_DEBUG("%s", dlerror());
 		}
@@ -99,6 +102,13 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 		goto ERR;
 	}
 	
+	if(errval != ESUCCESS) goto ERR;
+
+	handler->initialized = 1;
+	
+	handler->index = _glimpse_pluginloader_plugin_count;
+	_glimpse_pluginloader_plugin_list[_glimpse_pluginloader_plugin_count++] = handler;
+	
 	int i;
 	for(i = 0; handler->MetaData->Dependency && handler->MetaData->Dependency[i]; i ++)
 	{
@@ -121,18 +131,40 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 			if(vercode[index]) index ++; 
 		}
 		errval = EDEPEND;
-		GlimpsePluginHandler_t* handler = _glimpse_pluginloader_find_plugin(handler->MetaData->Name);
-		if(NULL == handler) goto ERR;
-		if(handler->initialized == 2) continue; /* the plugin is already in use */
-		if(handler->initialized == 1)
+		GlimpsePluginHandler_t* dep_handler = _glimpse_pluginloader_find_plugin(temp);
+		if(NULL == dep_handler) goto ERR;
+		if(dep_handler->initialized == 2) continue; /* the plugin is already in use */
+		if(dep_handler->initialized == 1)
 		{
 			GLIMPSE_LOG_ERROR("loop dependence detected");
 			goto ERR;
 		}
-		handler->initialized = 1;
-		_glimpse_pluginloader_initilaize_plugin(handler);
+		errval = _glimpse_pluginloader_initilaize_plugin(dep_handler);
+		if(ESUCCESS != errval) goto ERR;
+
+		errval = EVERSION;
+		for(j = 0; j < 3; j ++)
+			if(dep_handler->MetaData->Version[j] != min_version[j])
+			{
+				if(dep_handler->MetaData->Version[j] < vercode[j]) 
+				{
+					GLIMPSE_LOG_ERROR("plugin %s requires plugin %s in version %d.%d.%d, but got %d.%d.%d",
+									  handler->MetaData->Name,
+									  dep_handler->MetaData->Name,
+									  min_version[0],min_version[1],min_version[2],
+									  dep_handler->MetaData->Version[0],
+									  dep_handler->MetaData->Version[1],
+									  dep_handler->MetaData->Version[2]);
+					goto ERR;
+				}
+				break;
+			}
 	}
 	handler->initialized = 2;
+	GLIMPSE_LOG_TRACE("Plugin %s@%d.%d.%d has been initialized", handler->MetaData->Name,
+			handler->MetaData->Version[0],
+			handler->MetaData->Version[1],
+			handler->MetaData->Version[2]);
 	return ESUCCESS;
 ERR:
 	if(handler)

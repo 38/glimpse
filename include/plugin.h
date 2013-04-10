@@ -15,6 +15,7 @@ typedef struct _glimpse_plugin_metadata_t{
 }GlimpsePluginMetaData_t;
 #define GlimpsePluginMetaData(APIName) GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
 GlimpsePluginMetaData_t* GetMetaData(void){\
+	if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
 	GlimpsePluginMetaData_t* ret = \
 		(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
 		memset(ret, 0, sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
@@ -25,7 +26,7 @@ GlimpsePluginMetaData_t* GetMetaData(void){\
 	ret->Version[1] = minor;\
 	ret->Version[2] = rev;
 #define GlimpsePluginDependence static char* dependence[] = {
-#define GlimpsePluginEndDependence };ret->Dependency = dependence;
+#define GlimpsePluginEndDependence NULL};ret->Dependency = dependence;
 #define GlimpsePluginAPICallBack(APIName,Name) ((GlimpseAPIProc##APIName*)ret->data)->Name 
 #define GlimpseAPICall(APIName,Name, args...) ((GlimpseAPIProc##APIName*)_glimpse_plugin_metadata->data)->Name(args)
 #define GlimpsePluginEndMetaData return _glimpse_plugin_metadata = ret;}
