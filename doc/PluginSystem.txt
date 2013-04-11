@@ -1,0 +1,43 @@
+The Glimpse Plugin System
+
+
+Introduction
+
+The Glimpse Plugin System is a flexible plugin system, which is the bridge of
+the API and the User plugin. The user can develop different versions of API
+for different use. And in the plugin the develop should indicate which version
+of API is used for communication.
+Both API developer and plugin developer can use the utils provided by the
+system to make the development easier.
+
+
+
+The protocol makes the comminication between plugin and API.
+
+In the first stage, the dynamic library which contains the plugin will be
+loaded by dlopen. The system will find the symbol named `GetMetaData' to get
+the information of the plugin.
+As the GetMetaData has been called, the plugin have to allocate the memory for
+the meta data, and fill the fields. The type of meta data is
+GlimpsePluginMetaData_t which defined in the file include/plugin.h.
+	typedef struct _glimpse_plugin_metadata_t{
+		const char* Name;
+		const char* APIVersion;	//which groups of API dose the plugin request
+		GlimpsePluginVersion Version;	    //version of the plugin major.minor.revisionin
+		char ** Dependency;		//define the dependency of the plugin in 
+								//e.g.: plugin A.Dependency = {"B@3.1.2","C@3.0.5",NULL}
+		char data[0];			/*data used for specified version of API*/
+		/* DO NOT add any defination here */
+	}GlimpsePluginMetaData_t;
+The field data contains information and address table that need by specified
+version of API. A address table for communication is located there. The plugin
+should fill the address of functions which are used as callbacks from the API.
+
+In the second stage, the system will ask API to initialize the plugin, fill
+the function addresses of API calls. Then the system will resolve the dependency 
+of the plugin, find the plugins this plugin needed for initilaize and initialize 
+them. Finally finish the intialize of the plugin.
+
+In both plugin and API, meta->data are used as a address table for communicate
+each other.
+

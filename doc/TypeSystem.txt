@@ -1,0 +1,41 @@
+The Glimpse Type System
+
+The type system of Glimpse is a highly flexible framework. 
+==============================================================================
+First of all, there are few concept about the type system.
+1) type gourp
+	A type group is a set of type which are related. For example, `Integer'
+	is a type group, there are serval actual type in the group, such as
+	a signed 32 bit integer represented in decimal, a large integer
+	represented in binary, etc. 
+2) type properites
+	Type properites are the properties used for describing which type is
+	actually mentioned within a type group. For example, in the type group
+	`integer', we have properties, length, signed/unsigned, dec/hex/oct/bin.
+	In the type group of `date', the properties might be the format of the
+	date(yymmdd,mm-dd-yyyy, etc).
+3) type flags
+	Type type flags are additional properites that are common in all types.
+	There are four type flag, Vector, SubLog, Exptrapulate and Map. All type
+	flags are handlered by the framework, they are decorators for original
+	types.
+	Vector: indicates that it will be a vector of the type given in
+			the log.
+	SubLog: indicates there are key value structures. If the flag is set, the
+			type group and type proprieties will no longer meaningful.
+	Extrapulate: indicates the value will be extrapulated from other fields,
+				 this flag will prevent parse action for the field.
+	Map: indicates the type is a virtual value that maps the value of other
+		 points.
+4) type descriptor
+	Type descriptor describes which group the type belongs, the flags and the
+	properties of the type
+==============================================================================
+The build block of the type system are type plugins which uses the
+TypeDescAPI.  Type plugin might register a type group, define a parser
+generator, which according to the preporties of the type. 
+The plugin should implment the parser of specified type.
+
+The registered type group are stored in a type gourp list, and each time we
+can pass a type descriptor to a parser genrator to generate a gourp of function 
+that might used for parse the the log described in the descriptor
