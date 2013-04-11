@@ -41,7 +41,7 @@ endmacro(add_utest)
 
 macro(add_utest_with_api testname api apidir)
 	set(__sources__ test/${testname}.c)
-	set_source_files_properties(${__sources__} PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -I${apidir}/include)
+	set_source_files_properties(${__sources__} PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -I${apidir}/include\ -Iplugin/include)
 	add_executable(test/test_${testname} ${__sources__})
 	target_link_libraries(test/test_${testname} ${api})
 	target_link_libraries(test/test_${testname} glimpse)
