@@ -17,6 +17,9 @@ int main()
 	properties->Leading = NULL;
 	GlimpseTypeHandler_t handler = {};
 	glimpse_typesystem_query(td, &handler);
+	int tmp;
+	handler.parse("ff", &tmp, handler.parse_data); 
+	printf("%d\n",tmp);
 	return 0;
 
 }

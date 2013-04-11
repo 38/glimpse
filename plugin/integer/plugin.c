@@ -9,96 +9,46 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 	handler->parse_data = properties;
 	switch(properties->Size)
 	{
-		case GlimpseInteger8:
-			switch(properties->Representation)
-			{
-				case GlimpseIntegerBin: 
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_bin_i8;
-					else handler->parse = glimpse_integer_fixlength_bin_u8;
-					break;
-				case GlimpseIntegerOct:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_oct_i8;
-					else handler->parse = glimpse_integer_fixlength_oct_u8;
-					break;
-				case GlimpseIntegerDec:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_dec_i8;
-					else handler->parse = glimpse_integer_fixlength_dec_u8;
-					break;
-				case GlimpseIntegerHex:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_hex_i8;
-					else handler->parse = glimpse_integer_fixlength_hex_u8;
-					break;
-			}
-			break;
-		case GlimpseInteger16:	
-			switch(properties->Representation)
-			{
-				case GlimpseIntegerBin: 
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_bin_i16;
-					else handler->parse = glimpse_integer_fixlength_bin_u16;
-					break;
-				case GlimpseIntegerOct:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_oct_i16;
-					else handler->parse = glimpse_integer_fixlength_oct_u16;
-					break;
-				case GlimpseIntegerDec:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_dec_i16;
-					else handler->parse = glimpse_integer_fixlength_dec_u16;
-					break;
-				case GlimpseIntegerHex:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_hex_i16;
-					else handler->parse = glimpse_integer_fixlength_hex_u16;
-					break;
-			}
-			break;
-		case GlimpseInteger32:
-			switch(properties->Representation)
-			{
-				case GlimpseIntegerBin: 
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_bin_i32;
-					else handler->parse = glimpse_integer_fixlength_bin_u32;
-					break;
-				case GlimpseIntegerOct:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_oct_i32;
-					else handler->parse = glimpse_integer_fixlength_oct_u32;
-					break;
-				case GlimpseIntegerDec:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_dec_i32;
-					else handler->parse = glimpse_integer_fixlength_dec_u32;
-					break;
-				case GlimpseIntegerHex:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_hex_i32;
-					else handler->parse = glimpse_integer_fixlength_hex_u32;
-					break;
-			}
-			break;
-		case GlimpseInteger64:
-			switch(properties->Representation)
-			{
-				case GlimpseIntegerBin: 
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_bin_i64;
-					else handler->parse = glimpse_integer_fixlength_bin_u64;
-					break;
-				case GlimpseIntegerOct:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_oct_i64;
-					else handler->parse = glimpse_integer_fixlength_oct_u64;
-					break;
-				case GlimpseIntegerDec:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_dec_i64;
-					else handler->parse = glimpse_integer_fixlength_dec_u64;
-					break;
-				case GlimpseIntegerHex:
-					if(properties->Signed) handler->parse = glimpse_integer_fixlength_hex_i64;
-					else handler->parse = glimpse_integer_fixlength_hex_u64;
-					break;
-			}
-			break;
+/* Local Macro, undefined after used */
+#define _CASE_SIZE(len)\
+		case GlimpseInteger##len:\
+			switch(properties->Representation)\
+			{\
+				case GlimpseIntegerBin:\
+					if(properties->Signed) handler->parse = glimpse_integer_fixlength_bin_i##len;\
+					else handler->parse = glimpse_integer_fixlength_bin_u##len;\
+					break;\
+				case GlimpseIntegerOct:\
+					if(properties->Signed) handler->parse = glimpse_integer_fixlength_oct_i##len;\
+					else handler->parse = glimpse_integer_fixlength_oct_u##len;\
+					break;\
+				case GlimpseIntegerDec:\
+					if(properties->Signed) handler->parse = glimpse_integer_fixlength_dec_i##len;\
+					else handler->parse = glimpse_integer_fixlength_dec_u##len;\
+					break;\
+				case GlimpseIntegerHex:\
+					if(properties->Signed) handler->parse = glimpse_integer_fixlength_hex_i##len;\
+					else handler->parse = glimpse_integer_fixlength_hex_u##len;\
+					break;\
+				default:\
+					return -1;\
+			}\
+			break
+		_CASE_SIZE(8);
+		_CASE_SIZE(16);
+		_CASE_SIZE(32);
+		_CASE_SIZE(64);
 		case GlimpseIntegerVariant:
 			//TODO
 			break;
 		default:
 			return -1;
 	}
+	PLUGIN_LOG_DEBUG("Integer, Size = %d, Signed = %d, Representation = %d Assigned to parser at <0x%x>", 
+	                 properties->Size, 
+					 properties->Signed, 
+					 properties->Representation,
+					 handler->parse);
 	return 0;
 }
 GlimpseTypeGroup_t int_type_group = {
