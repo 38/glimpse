@@ -12,4 +12,5 @@ GlimpseAPIData(TypeAPI)
 GlimpseAPIDataEnd
 void Glimpse_TypeAPI_init(void);
 #define RegisterTypeGroup(tg) GlimpseAPICall(TypeAPI, RegisterTypeGroup, tg)
+#define WriteLog(args...) GlimpseAPICall(TypeAPI, WriteLog, ##args)
 #endif
