@@ -22,8 +22,9 @@ GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties);
 
 /* contains handlers for each type, used for parse */
 typedef struct _glimpse_type_handler{
+	void* parse_data; /* pass the additional data used by parse function */
 	/* the parse function process text into specified data type, the procudt store in result */
-	char* (*parse)(char* text, void* result, void* additional); 
+	const char* (*parse)(const char* text, void* result, void* additional); 
 	/* Add some new interface here to extend the framework */
 } GlimpseTypeHandler_t;
 
