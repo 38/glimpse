@@ -19,7 +19,7 @@ typedef struct _glimpse_plugin_handler{
 }GlimpsePluginHandler_t;
 
 extern char* glimpse_pluginloader_path[256];
-int pluginloader_register_api(GlimpseAPIMetaData_t* API);
-int pluginloader_load_plugin(const char* name);
-int pluginloader_unload_plugin(GlimpsePluginMetaData_t* plugin);
+int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API);
+int glimpse_pluginloader_load_plugin(const char* name);
+int glimpse_pluginloader_cleanup();
 #endif

@@ -1,7 +1,6 @@
 #ifndef __TEST_API__
 #define __TEST_API__
 #include <api.h>
-#include <plugin.h>
 GlimpseAPIData(testapi)
 	int (*add)(int a, int b);
 	int (*done)();

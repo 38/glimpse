@@ -20,6 +20,16 @@ int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API)
 		return ETOOMANYAPI;
 	}
 	_glimpse_pluginloader_api_list[_glimpse_pluginloader_api_count++] = API;
+	if(API->Initialize) 
+	{
+		int ret = API->Initialize();
+		if(ret < 0) 
+		{
+			GLIMPSE_LOG_ERROR("API %s Initilaize failed", API->APIVersion);
+			_glimpse_pluginloader_api_count--;
+			return EUNKNOWN;
+		}
+	}
 	GLIMPSE_LOG_DEBUG("API %s Registered.", API->APIVersion);
 	return ESUCCESS;
 }
@@ -94,16 +104,6 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 		goto ERR;
 	}
 	
-	if(handler->API->PluginInitialize)
-		errval = handler->API->PluginInitialize(handler->MetaData->data);
-	else
-	{
-		errval = EMALFORMEDAPI;
-		goto ERR;
-	}
-	
-	if(errval != ESUCCESS) goto ERR;
-
 	handler->initialized = 1;
 	
 	handler->index = _glimpse_pluginloader_plugin_count;
@@ -160,6 +160,17 @@ int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 				break;
 			}
 	}
+	
+	if(handler->API->PluginInitialize)
+		errval = handler->API->PluginInitialize(handler->MetaData->data);
+	else
+	{
+		errval = EMALFORMEDAPI;
+		goto ERR;
+	}
+	
+	if(errval != ESUCCESS) goto ERR;
+
 	handler->initialized = 2;
 	GLIMPSE_LOG_TRACE("Plugin %s@%d.%d.%d has been initialized", handler->MetaData->Name,
 			handler->MetaData->Version[0],
@@ -179,4 +190,23 @@ int glimpse_pluginloader_load_plugin(const char* name)
 {
 	GlimpsePluginHandler_t* handler = _glimpse_pluginloader_find_plugin(name);
 	return _glimpse_pluginloader_initilaize_plugin(handler);
+}
+int glimpse_pluginloader_cleanup()
+{
+	int i;
+	for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
+	{
+		GlimpsePluginHandler_t* handler = _glimpse_pluginloader_plugin_list[i];
+		if(handler->API->PluginInitialize)
+			handler->API->PluginFinalize(handler->MetaData->data);
+		free(handler->MetaData);
+		dlclose(handler->dl_handler);
+	}
+	for(i = 0; i < _glimpse_pluginloader_api_count; i ++)
+	{
+		GlimpseAPIMetaData_t* API = _glimpse_pluginloader_api_list[i];
+		if(API->Finalize) API->Finalize();
+	}
+	_glimpse_pluginloader_api_count = _glimpse_pluginloader_plugin_count = 0;
+	return 0;
 }
