@@ -27,8 +27,8 @@ GlimpsePluginMetaData_t* GetMetaData(void){\
 	ret->Version[2] = rev;
 #define GlimpsePluginDependence static char* dependence[] = {
 #define GlimpsePluginEndDependence NULL};ret->Dependency = dependence;
-#define GlimpsePluginAPICallBack(APIName,Name) ((GlimpseAPIProc##APIName*)ret->data)->Name 
-#define GlimpseAPICall(APIName,Name, args...) ((GlimpseAPIProc##APIName*)_glimpse_plugin_metadata->data)->Name(args)
+#define GlimpsePluginAPICallBack(APIName,Name) ((GlimpseAPIProc##APIName*)ret->data)->plugin_functions.Name 
+#define GlimpseAPICall(APIName,Name, args...) (((GlimpseAPIProc##APIName*)_glimpse_plugin_metadata->data)->api_functions.Name(args))
 #define GlimpsePluginEndMetaData return _glimpse_plugin_metadata = ret;}
 extern GlimpsePluginMetaData_t* _glimpse_plugin_metadata;
 #endif

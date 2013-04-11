@@ -7,8 +7,8 @@ int add(int a, int b)
 int init(void* meta)
 {
 	GlimpseAPIDataType(testapi) *data = (GlimpseAPIDataType(testapi)*) meta;
-	data->add = add;
-	data->done();
+	data->api_functions.add = add;
+	data->plugin_functions.done();
 	return 0;
 }
 GlimpseAPIMetaData_t metadata = {

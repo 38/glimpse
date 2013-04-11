@@ -5,10 +5,14 @@
 #include <log.h>
 GlimpseAPIData(TypeAPI)
 	//called by plugin
-	int (*RegisterTypeGroup)(GlimpseTypeGroup_t* typegroup);
-	void (*WriteLog)(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...);
+	GlimpseAPIFunctions
+		int (*RegisterTypeGroup)(GlimpseTypeGroup_t* typegroup);
+		void (*WriteLog)(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...);
+	GlimpseAPIFunctionsEnd
 	//called by API
-	int (*OnInitialized)(void);
+	GlimpsePluginFunctions
+		int (*OnInitialized)(void);
+	GlimpsePluginFunctionsEnd
 GlimpseAPIDataEnd
 void Glimpse_TypeAPI_init(void);
 #define RegisterTypeGroup(tg) GlimpseAPICall(TypeAPI, RegisterTypeGroup, tg)

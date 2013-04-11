@@ -3,9 +3,9 @@
 int Glimpse_TypeAPI_PluginInit(void* data)
 {
 	GlimpseAPIDataType(TypeAPI)* meta = (GlimpseAPIDataType(TypeAPI)*)data;
-	meta->RegisterTypeGroup = glimpse_typesystem_register_typegroup;
-	meta->WriteLog = glimpse_log_write;
-	if(meta->OnInitialized) meta->OnInitialized();
+	meta->api_functions.RegisterTypeGroup = glimpse_typesystem_register_typegroup;
+	meta->api_functions.WriteLog = glimpse_log_write;
+	if(meta->plugin_functions.OnInitialized) meta->plugin_functions.OnInitialized();
 	return 0;
 }
 
