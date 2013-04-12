@@ -15,4 +15,5 @@
 #define EMAILFORMEDTG -10
 #define ENOSYMBOL -11
 #define EDUPSYMBOL -12
+#define ELISTFULL -13
 #endif

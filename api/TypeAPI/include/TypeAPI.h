@@ -22,8 +22,8 @@ void Glimpse_TypeAPI_init(void);
 #define Export(function) GlimpseAPICall(TypeAPI, ExportSymbol, #function, function)
 #define Import(function) ((typeof(&function)) GlimpseAPICall(TypeAPI, ImportSymbol, #function))
 #define ExternalFunction(func) typeof(&func) _glimpse_external_##func
-#define ImportFunction(func) _glimpse_external_##func = Import(func);
-#define ExternalCall(func, args...) _glimpse_external_##func(##args) 
+#define ImportFunction(func) do{ _glimpse_external_##func = Import(func); } while(0)
+#define ExternalCall(func, args...) (_glimpse_external_##func(##args))
 
 #define PLUGIN_LOG(level,fmt,arg...) do{\
 	WriteLog(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\

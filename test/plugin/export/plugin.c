@@ -5,7 +5,6 @@ void foo()
 }
 int init()
 {
-	foo();
 	Export(foo);
 }
 GlimpsePluginMetaData(TypeAPI)
