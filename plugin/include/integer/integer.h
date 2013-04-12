@@ -8,7 +8,10 @@ typedef struct _glimpse_integer_properties{
 		GlimpseInteger16,	/* 16 bit */
 		GlimpseInteger32,	/* 32 bit */
 		GlimpseInteger64,	/* 64 bit */
-		GlimpseIntegerVariant /* Big Integer */
+		GlimpseIntegerVariant, /* Big Integer */
+		/* you should add some new value for this property here */
+		GlimpseIntegerSizeCount /* how many possible values */
+		/* DO NOT add any element here */
 	} Size:7;
 	/* Incidates wether the integer is signed */
 	int Signed:1;
@@ -18,9 +21,13 @@ typedef struct _glimpse_integer_properties{
 		GlimpseIntegerBin,	/* Binary */
 		GlimpseIntegerOct,	/* Octal */
 		GlimpseIntegerHex,	/* Hexadecimal */
-		GlimpseIntegerIP	/* IP Address like 127.0.0.1 */
+		/* you should add some new value for this property here */
+		GlimpseIntegerRepresentationCount
+		/* DO NOT add any element here */
 	} Representation:8;
 	/* Indicates the suffix of the integer, e.g. 0x1234, leading = 0x */
 	char* Leading;
+	/* Indicates the string of signed integer which located between the sign and the value part */
+	char* LeadingAfterSign;
 } GlimpseIntegerProperties_t;
 #endif

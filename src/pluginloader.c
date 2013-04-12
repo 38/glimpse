@@ -197,7 +197,7 @@ int glimpse_pluginloader_cleanup()
 	for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
 	{
 		GlimpsePluginHandler_t* handler = _glimpse_pluginloader_plugin_list[i];
-		if(handler->API->PluginInitialize)
+		if(handler->API->PluginFinalize)
 			handler->API->PluginFinalize(handler->MetaData->data);
 		free(handler->MetaData);
 		dlclose(handler->dl_handler);

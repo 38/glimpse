@@ -40,9 +40,12 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 		_CASE_SIZE(64);
 		case GlimpseIntegerVariant:
 			//TODO
+			PLUGIN_LOG_WARNING("Integer Plugin does not support big integer yet");
+			return -1;
 			break;
 		default:
 			return -1;
+#undef _CASE_SIZE
 	}
 	PLUGIN_LOG_DEBUG("Integer, Size = %d, Signed = %d, Representation = %d Assigned to parser at <0x%x>", 
 	                 properties->Size, 

@@ -15,6 +15,11 @@ GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties)
 	memset(ret,0,sz_properties);
 	return ret;
 }
+void glimpse_typesystem_freedesc(GlimpseTypeDesc_t* typedesc)
+{
+	if(NULL == typedesc) return;
+	free(typedesc);
+}
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 {
 	int i;

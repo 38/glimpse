@@ -13,12 +13,12 @@
 typedef struct _glimpse_typedesc{
 	unsigned flag; /*type flags*/
 	char* vector_sep;    /* seprator of vector if the type decleared as a vector, valid when Vector Flag is set*/
-	ParseTree_t* sub_tree; /* indicate the parse method of sublog, valid when sublog flag is set*/ 
+	ParseTree_t* sub_tree; /* indicate the parse method of sublog, valid when sublog flag is set*/
+	/*TODO: put data reference here*/
 	char* group; /* which group dose the type belongs */
 	char  properties[0]; /* properties might different from group to group */
 	/* DO NOT add any defination here */
 } GlimpseTypeDesc_t;
-GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties);
 
 /* contains handlers for each type, used for parse */
 typedef struct _glimpse_type_handler{
@@ -35,7 +35,9 @@ typedef struct _glimpse_type_group{
 	int (*resolve)(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler);
 }GlimpseTypeGroup_t;
 
+GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties);
+void glimpse_typesystem_freedesc(GlimpseTypeDesc_t* typedesc);
+
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
 int glimpse_typesystem_query(GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler);
-
 #endif
