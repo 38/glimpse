@@ -60,6 +60,7 @@ GlimpseTypeGroup_t int_type_group = {
 };
 int init()
 {
+	//TODO: return value ?
 	RegisterTypeGroup(&int_type_group);
 }
 GlimpsePluginMetaData(TypeAPI)

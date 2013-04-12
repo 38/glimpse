@@ -71,8 +71,8 @@ const char* glimpse_integer_fixlength_dec_i##len(const char* str, void* ret, voi
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
-	str = tmp;\ 
-    int sign = 1;\
+	str = tmp;\
+	int sign = 1;\
     *((int##len##_t*)ret) = 0;\
     while(*str != 0 && *str == '-')\
     {\

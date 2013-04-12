@@ -33,7 +33,7 @@ int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API)
 	GLIMPSE_LOG_DEBUG("API %s Registered.", API->APIVersion);
 	return ESUCCESS;
 }
-GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* version)
+static GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* version)
 {
 	int i;
 	for(i = 0; i < _glimpse_pluginloader_api_count; i ++)
@@ -42,7 +42,7 @@ GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* vers
 	GLIMPSE_LOG_WARNING("can not find API %s", version);
 	return NULL;
 }
-GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* name)
+static GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* name)
 {
 	int i;
 	for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
@@ -76,7 +76,7 @@ ERR:
 	return NULL;
 }
 typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(void);
-int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
+static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {
 	int errval = EINVAILDARG;
 	if(NULL == handler) goto ERR;

@@ -2,6 +2,7 @@
 #define __SRC_PLUGIN_H__
 #include <plugin.h>
 #include <api.h>
+#include <stdint.h>
 /* define how many versions of API dose the framework support */
 #ifndef MAX_API_VERSION
 #	define MAX_API_VERSION 16
@@ -11,8 +12,8 @@
 #endif
 
 typedef struct _glimpse_plugin_handler{
-	int index;
-	int  initialized;
+	int32_t index;
+	int32_t  initialized;
 	GlimpsePluginMetaData_t* MetaData;
 	GlimpseAPIMetaData_t* API;
 	void* dl_handler;

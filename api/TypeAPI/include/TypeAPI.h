@@ -8,6 +8,8 @@ GlimpseAPIData(TypeAPI)
 	GlimpseAPIFunctions
 		int (*RegisterTypeGroup)(GlimpseTypeGroup_t* typegroup);
 		void (*WriteLog)(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...);
+		int  (*ExportSymbol)(const char* symbol, void* address);
+		void* (*ImportSymbol)(const char* symbol);
 	GlimpseAPIFunctionsEnd
 	//called by API
 	GlimpsePluginFunctions
@@ -17,6 +19,11 @@ GlimpseAPIDataEnd
 void Glimpse_TypeAPI_init(void);
 #define RegisterTypeGroup(tg) GlimpseAPICall(TypeAPI, RegisterTypeGroup, tg)
 #define WriteLog(args...) GlimpseAPICall(TypeAPI, WriteLog, args)
+#define Export(function) GlimpseAPICall(TypeAPI, ExportSymbol, #function, function)
+#define Import(function) ((typeof(&function)) GlimpseAPICall(TypeAPI, ImportSymbol, #function))
+#define ExternalFunction(func) typeof(&func) _glimpse_external_##func
+#define ImportFunction(func) _glimpse_external_##func = Import(func);
+#define ExternalCall(func, args...) _glimpse_external_##func(##args) 
 
 #define PLUGIN_LOG(level,fmt,arg...) do{\
 	WriteLog(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\

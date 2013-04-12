@@ -101,7 +101,7 @@ void random_case()
 	prop->Signed = rand()&1;
 	prop->Representation = rand()%GlimpseIntegerRepresentationCount;
 	GlimpseTypeHandler_t handler = {};
-	if(glimpse_typesystem_query(td, &handler) < 0) return;
+	if(glimpse_typesystem_query(td, &handler) < 0) goto _EXIT;
 	long long tmp = 0;
 	handler.parse("1", &tmp, handler.parse_data);
 	assert(tmp == 1);
@@ -121,10 +121,9 @@ void random_case()
 		const char* input = print(&expect, prop->Signed, prop->Size, prop->Representation, prop->Leading, prop->LeadingAfterSign);
 		long long returned = 0;
 		const char* rc = handler.parse(input, &returned, handler.parse_data);
-		if(returned != expect)
-			puts("fuck");
 		assert(returned == expect);
 	}
+_EXIT:
 	glimpse_typesystem_freedesc(td);
 }
 int main()
@@ -134,7 +133,7 @@ int main()
 	Glimpse_TypeAPI_init();
 	glimpse_pluginloader_path[0] = ".";
 	glimpse_pluginloader_path[1] = NULL;
-	glimpse_pluginloader_load_plugin("integer");
+	assert(0 == glimpse_pluginloader_load_plugin("integer"));
 	case0();
 	for(i = 0; i < 10000; i ++)
 		random_case();

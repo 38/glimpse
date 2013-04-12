@@ -13,4 +13,6 @@
 #define EDEPEND -8
 #define EVERSION -9
 #define EMAILFORMEDTG -10
+#define ENOSYMBOL -11
+#define EDUPSYMBOL -12
 #endif

@@ -1,6 +1,7 @@
 #ifndef __TYPESYSTEM_H__
 #define __TYPESYSTEM_H__
 #include <stdlib.h>
+#include <stdint.h>
 #include <tree.h>
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
@@ -11,7 +12,7 @@
 #define TYPEFLAG_MAP 0x8
 /* Type descriptor */
 typedef struct _glimpse_typedesc{
-	unsigned flag; /*type flags*/
+	uint32_t flag; /*type flags*/
 	char* vector_sep;    /* seprator of vector if the type decleared as a vector, valid when Vector Flag is set*/
 	ParseTree_t* sub_tree; /* indicate the parse method of sublog, valid when sublog flag is set*/
 	/*TODO: put data reference here*/

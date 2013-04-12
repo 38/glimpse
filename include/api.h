@@ -1,5 +1,6 @@
 #ifndef __API_H__
 #define __API_H__
+#include <stdint.h>
 /* metadata of APIs */
 typedef struct _glimpse_api_metadata_t{
 	const char* APIVersion;  /*Version of API*/
