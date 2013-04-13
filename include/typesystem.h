@@ -40,6 +40,11 @@ typedef struct _glimpse_type_handler{
 	/* free memory used by data */
 	void* free_data;
 	void (*free)(void* data, void* user_data);
+
+	/* initialize data before use */
+	void* init_data;
+	void (*init)(void* data, void* user_data);
+	
 	/* Add some new interface here to extend the framework */
 } GlimpseTypeHandler_t;
 

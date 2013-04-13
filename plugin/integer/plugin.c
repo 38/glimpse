@@ -44,6 +44,8 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 	handler->free_data = properties;
 	handler->alloc = alloc_int;
 	handler->free = free_int; 
+	handler->init_data = NULL;
+	handler->init = NULL; 		/* we does not need initialize */
 	switch(properties->Size)
 	{
 /* Local Macro, undefined after used */
