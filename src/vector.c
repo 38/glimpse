@@ -25,6 +25,7 @@ void glimpse_vector_init(GlimpseVector_t* vector)
 void glimpse_vector_free(GlimpseVector_t* vector)
 {
 	if(NULL == vector) return;
+	if(vector->data) free(vector->data);
 	free(vector);
 }
 

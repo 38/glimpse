@@ -1,15 +1,15 @@
 #ifndef __DATA_H__
 #define __DATA_H__
+#include <typesystem.h>
 /* each parse tree has it's own data model */
 struct _glimpse_data_instance_t;
 typedef struct _glimpse_data_instance_t GlimpseDataInstance_t;
 typedef struct _glimpse_data_member_t{
-	GlimpseTypeHandler_t* handler;
 	int idx;
+	GlimpseTypeHandler_t* handler;
 	struct _glimpse_data_member_t* next;
 } GlimpseDataMember_t;
 typedef struct _glimpse_data_model_t{
-	int size;
 	GlimpseDataMember_t* members;
 	/* data instance pool */
 	GlimpseDataInstance_t* used;
@@ -28,6 +28,7 @@ void glimpse_data_model_free(GlimpseDataModel_t* model);
 
 int glimpse_data_model_insert(GlimpseDataModel_t* model, GlimpseTypeHandler_t* type);
 
-GlimpseDataInstance_t* glimpse_data_model_create_instance(GlimpseDataModel_t* model);
+GlimpseDataInstance_t* glimpse_data_instance_new(GlimpseDataModel_t* model);
+void glimpse_data_instance_free(GlimpseDataModel_t* model, GlimpseDataInstance_t* instance);
 
 #endif
