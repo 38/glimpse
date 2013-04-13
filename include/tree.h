@@ -8,7 +8,10 @@ typedef struct _glimpse_trie_node{
 	uint8_t term;
 	union{
 		GlimpseCharTable_t* child;
-		GlimpseTypeHandler_t* handler;
+		struct{
+			GlimpseTypeHandler_t* handler;
+			void* data;
+		} terminus;
 	} s;
 } GlimpseTrieNode_t;
 /*Trie Node manipulation*/

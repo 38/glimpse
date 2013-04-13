@@ -30,7 +30,20 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	if(NULL == node) return;
 	if(node->term)
 	{
-		if(NULL != node->s.handler) free(node->s.handler); /*handler is allocated by glimpse_tree_insert */
+		
+		if(NULL != node->s.terminus.handler) 
+		{
+			if(node->s.terminus.handler->type->flags&(GLIMPSE_TYPEFLAG_SUBLOG|GLIMPSE_TYPEFLAG_VECTOR|GLIMPSE_TYPEFLAG_MAP))
+			{
+				//TODO: free Vector,Map,Sublog
+			}
+			else
+			{
+				if(node->s.terminus.data) 
+					node->s.terminus.handler->free(node->s.terminus.data, node->s.terminus.handler->free_data);
+			}
+			free(node->s.terminus.handler); /*handler is allocated by glimpse_tree_insert */
+		}
 	}
 	else if(NULL != node->s.child)	/* child table should be desposed */
 	{
@@ -161,7 +174,22 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 		GLIMPSE_LOG_ERROR("cur->term unexceptedly be 0");
 		return EUNKNOWN;
 	}
-	cur->s.handler = (GlimpseTypeHandler_t*)malloc(sizeof(GlimpseTypeHandler_t));
-	return glimpse_typesystem_query(type, cur->s.handler);
+	cur->s.terminus.handler = (GlimpseTypeHandler_t*)malloc(sizeof(GlimpseTypeHandler_t));
+	int rc = glimpse_typesystem_query(type, cur->s.terminus.handler);
+	if(ESUCCESS != rc) return rc;
+	if(type->flags&(GLIMPSE_TYPEFLAG_SUBLOG|GLIMPSE_TYPEFLAG_VECTOR|GLIMPSE_TYPEFLAG_MAP))
+	{
+		// TODO: allocate vector,sublog, map
+	}
+	else
+	{
+		cur->s.terminus.data = cur->s.terminus.handler->alloc(cur->s.terminus.handler->alloc_data);
+		if(NULL == cur->s.terminus.data)
+		{
+			GLIMPSE_LOG_ERROR("can not allocate memory for data %s", field);
+			return EUNKNOWN;
+		}
+	}
+	return ESUCCESS;
 }
 

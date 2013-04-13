@@ -2,11 +2,48 @@
 #include <stdio.h>
 #include <integer/integer.h>
 #include <integer/fixlength.h>
+void* alloc_int(void* data)
+{
+	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)data;
+	size_t size = 0;
+	switch(properties->size)
+	{
+		case GlimpseInteger8:
+			size = 1;
+			break;
+		case GlimpseInteger16:
+			size = 2;
+			break;
+		case GlimpseInteger32:
+			size = 4;
+			break;
+		case GlimpseInteger64:
+			size = 5;
+			break;
+		case GlimpseIntegerVariant:
+			PLUGIN_LOG_ERROR("we can not support big integer yet");
+			size = 0;
+			break;
+		default:
+			PLUGIN_LOG_ERROR("unsupported integer type");
+			size = 0;
+	}
+	if(0 == size) return NULL;
+	return malloc(size);
+}
+void free_int(void* data, void* userdata)
+{
+	free(data);
+}
 int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 {
 	if(NULL == type || NULL == handler) return -1;
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)type->properties;
 	handler->parse_data = properties;
+	handler->alloc_data = properties;
+	handler->free_data = properties;
+	handler->alloc = alloc_int;
+	handler->free = free_int; 
 	switch(properties->Size)
 	{
 /* Local Macro, undefined after used */

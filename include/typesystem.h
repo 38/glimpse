@@ -5,10 +5,10 @@
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
-#define TYPEFLAG_SUBLOG 0x1
-#define TYPEFLAG_VECTOR 0x2
-#define TYPEFLAG_EXTRAPULATE 0x4
-#define TYPEFLAG_MAP 0x8
+#define GLIMPSE_TYPEFLAG_SUBLOG 0x1
+#define GLIMPSE_TYPEFLAG_VECTOR 0x2
+#define GLIMPSE_TYPEFLAG_EXTRAPULATE 0x4
+#define GLIMPSE_TYPEFLAG_MAP 0x8
 /* Previous decleration for GlimpseParseTree_t 
  * which defined in file tree.h
  */
@@ -27,10 +27,19 @@ typedef struct _glimpse_typedesc{
 
 /* contains handlers for each type, used for parse */
 typedef struct _glimpse_type_handler{
-	void* parse_data; /* pass the additional data used by parse function */
 	GlimpseTypeDesc_t* type; /* type information */
+	
 	/* the parse function process text into specified data type, the procudt store in result */
-	const char* (*parse)(const char* text, void* result, void* additional); 
+	void* parse_data; /* pass the additional data used by parse function */
+	const char* (*parse)(const char* text, void* result, void* user_data);
+	
+	/* alloc memory for data storage */
+	void* alloc_data;
+	void* (*alloc)(void* user_data);
+
+	/* free memory used by data */
+	void* free_data;
+	void (*free)(void* data, void* user_data);
 	/* Add some new interface here to extend the framework */
 } GlimpseTypeHandler_t;
 
