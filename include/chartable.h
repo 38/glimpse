@@ -16,14 +16,15 @@ typedef struct _glimpse_char_hash_node_t{
 } GlimpseCharHashNode_t;
 /* Variant length char hash table */
 typedef struct _glimpse_char_table_t{
-	size_t level;   /* number of slot is different between levels, _glimpse_chartable_hashnum[level] is the capacity */
-	size_t count;
+	uint8_t count;   /* number of element */
+	uint8_t level; /* number of slot is different between levels, _glimpse_chartable_hashnum[level] is the capacity */
+	/* following member is for optimization */
+	uint8_t max_chain_len;
+	/* hash table */
 	GlimpseCharHashNode_t** slots;
 	/* following member are used for transverse the table */
 	GlimpseCharHashNode_t*  first;
 	GlimpseCharHashNode_t*  last;
-	/* following member is for optimization */
-	int max_chain_len;
 } GlimpseCharTable_t;
 GlimpseCharTable_t* glimpse_chartable_new();
 void glimpse_chartable_free(GlimpseCharTable_t* table);

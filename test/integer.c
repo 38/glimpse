@@ -5,7 +5,7 @@
 #include <time.h>
 void case0()
 {
-	GlimpseTypeDesc_t* td = glimpse_typesystem_newdesc(sizeof(GlimpseIntegerProperties_t));
+	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)td->properties;
 	td->group = "integer";
 	td->flag = 0;
@@ -40,7 +40,7 @@ void case0()
 	assert(ret != NULL);
 	assert(*ret == 0);
 
-	glimpse_typesystem_freedesc(td);
+	glimpse_typesystem_typedesc_free(td);
 }
 char D[] = "0123456789abcdef";
 const char* print(long long *n, int sign, int size, int rep, const char* l, const char* las)
@@ -93,7 +93,7 @@ const char* print(long long *n, int sign, int size, int rep, const char* l, cons
 }
 void random_case()
 {
-	GlimpseTypeDesc_t* td = glimpse_typesystem_newdesc(sizeof(GlimpseIntegerProperties_t));
+	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* prop = (GlimpseIntegerProperties_t*)td->properties;
 	td->group = "integer";
 	td->flag = 0;
@@ -124,7 +124,7 @@ void random_case()
 		assert(returned == expect);
 	}
 _EXIT:
-	glimpse_typesystem_freedesc(td);
+	glimpse_typesystem_typedesc_free(td);
 }
 int main()
 {

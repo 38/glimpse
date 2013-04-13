@@ -6,7 +6,7 @@
 GlimpseTypeGroup_t *_glimpse_typesystem_typegroup_list[TYPEDESC_MAX_TYPEGROUPS];
 int _glimpse_typesystem_typegroup_count = 0;
 
-GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties)
+GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties)
 {
 	GlimpseTypeDesc_t* ret = NULL;
 	sz_properties += sizeof(GlimpseTypeDesc_t);
@@ -15,7 +15,7 @@ GlimpseTypeDesc_t* glimpse_typesystem_newdesc(size_t sz_properties)
 	memset(ret,0,sz_properties);
 	return ret;
 }
-void glimpse_typesystem_freedesc(GlimpseTypeDesc_t* typedesc)
+void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 {
 	if(NULL == typedesc) return;
 	free(typedesc);
@@ -46,6 +46,7 @@ int glimpse_typesystem_query(GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* hand
 	for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
 		if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, type->group) == 0)
 		{
+			handler->type = type;
 			int ret = _glimpse_typesystem_typegroup_list[i]->resolve(type, handler);
 			return ret;
 		}

@@ -16,5 +16,7 @@ int main()
 	for(i = 0; i < 255; i ++)
 		assert((void*)i == glimpse_chartable_find(table, i));
 	glimpse_chartable_free(table);
+	printf("%d\n",sizeof(GlimpseCharTable_t));
+	printf("%d\n",sizeof(GlimpseCharHashNode_t));
 	return 0;
 }

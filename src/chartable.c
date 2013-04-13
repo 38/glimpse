@@ -1,7 +1,7 @@
 #include <chartable.h>
 #include <malloc.h>
 #include <string.h>
-int _glimpse_chartable_hashnum[] = {5, 11, 23, 47, 97, 197, 257, 0}; /* prime numbers */
+int _glimpse_chartable_hashnum[] = {1, 2, 5, 11, 23, 47, 97, 197, 257, 0}; /* prime numbers */
 GlimpseCharTable_t* glimpse_chartable_new()
 {
 	GlimpseCharTable_t* ret = (GlimpseCharTable_t*)malloc(sizeof(GlimpseCharTable_t));
