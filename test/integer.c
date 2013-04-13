@@ -8,7 +8,7 @@ void case0()
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)td->properties;
 	td->group = "integer";
-	td->flag = 0;
+	td->flags = 0;
 	properties->Size = GlimpseInteger32;
 	properties->Signed = 1;
 	properties->Representation = GlimpseIntegerHex;
@@ -96,7 +96,7 @@ void random_case()
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* prop = (GlimpseIntegerProperties_t*)td->properties;
 	td->group = "integer";
-	td->flag = 0;
+	td->flags = 0;
 	prop->Size = rand()%GlimpseIntegerSizeCount;
 	prop->Signed = rand()&1;
 	prop->Representation = rand()%GlimpseIntegerRepresentationCount;

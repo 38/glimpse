@@ -8,7 +8,7 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.WriteLog = glimpse_log_write;
 	meta->api_functions.ExportSymbol = glimpse_symbol_exportsymbol;
 	meta->api_functions.ImportSymbol = glimpse_symbol_importsymbol;
-	if(meta->plugin_functions.OnInitialized) meta->plugin_functions.OnInitialized();
+	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
 	return 0;
 }
 

@@ -97,8 +97,8 @@ GlimpseTypeGroup_t int_type_group = {
 };
 int init()
 {
-	//TODO: return value ?
 	RegisterTypeGroup(&int_type_group);
+	return 0;
 }
 GlimpsePluginMetaData(TypeAPI)
 	GlimpsePluginName("integer");
