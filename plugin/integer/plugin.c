@@ -6,7 +6,7 @@ void* alloc_int(void* data)
 {
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)data;
 	size_t size = 0;
-	switch(properties->size)
+	switch(properties->Size)
 	{
 		case GlimpseInteger8:
 			size = 1;

@@ -16,7 +16,7 @@ struct _glimpse_parse_tree;
 typedef struct _glimpse_parse_tree GlimpseParseTree_t;
 /* Type descriptor */
 typedef struct _glimpse_typedesc{
-	uint32_t flag; /*type flags*/
+	uint32_t flags; /*type flags*/
 	char* vector_sep;    /* seprator of vector if the type decleared as a vector, valid when Vector Flag is set*/
 	GlimpseParseTree_t* sub_tree; /* indicate the parse method of sublog, valid when sublog flag is set*/
 	/*TODO: put data reference here*/
