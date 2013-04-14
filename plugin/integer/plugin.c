@@ -31,9 +31,10 @@ void* alloc_int(void* data)
 	if(0 == size) return NULL;
 	return malloc(size);
 }
-void free_int(void* data, void* userdata)
+int free_int(void* data, void* userdata)
 {
 	free(data);
+	return 0;
 }
 int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 {

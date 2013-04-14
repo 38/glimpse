@@ -4,7 +4,6 @@
 #include <chartable.h>
 #include <typesystem.h>
 #include <stdint.h>
-#include <data.h>
 typedef struct _glimpse_trie_node{
 	uint8_t term;
 	union{
@@ -23,7 +22,7 @@ typedef struct _glimpse_parse_tree{
 	const char* sep_f;  /* seperator between feilds */
 	const char* sep_kv; /* seperator between key and value */
 	GlimpseTrieNode_t* root;
-	GlimpseDataModel_t* model; /* data model for log */
+	//GlimpseDataModel_t* model; /* data model for log */
 } GlimpseParseTree_t;
 /* Tree manipulation */
 GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv);

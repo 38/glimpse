@@ -174,9 +174,8 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 		GLIMPSE_LOG_ERROR("cur->term unexceptedly be 0");
 		return EUNKNOWN;
 	}
-	cur->s.terminus.handler = (GlimpseTypeHandler_t*)malloc(sizeof(GlimpseTypeHandler_t));
-	int rc = glimpse_typesystem_query(type, cur->s.terminus.handler);
-	if(ESUCCESS != rc) return rc;
+	cur->s.terminus.handler = glimpse_typesystem_query(type);
+	if(NULL == cur->s.terminus.handler) return EUNKNOWN;
 	/* if(type->flags&(GLIMPSE_TYPEFLAG_SUBLOG|GLIMPSE_TYPEFLAG_VECTOR|GLIMPSE_TYPEFLAG_MAP))
 	{
 		// TODO: allocate vector,sublog, map

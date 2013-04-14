@@ -1,5 +1,6 @@
 #include <chartable.h>
 #include <assert.h>
+#include <stdio.h>
 int main()
 {
 	int i;
@@ -16,7 +17,7 @@ int main()
 	for(i = 0; i < 255; i ++)
 		assert((void*)i == glimpse_chartable_find(table, i));
 	glimpse_chartable_free(table);
-	printf("%d\n",sizeof(GlimpseCharTable_t));
-	printf("%d\n",sizeof(GlimpseCharHashNode_t));
+	printf("%zu\n",sizeof(GlimpseCharTable_t));
+	printf("%zu\n",sizeof(GlimpseCharHashNode_t));
 	return 0;
 }

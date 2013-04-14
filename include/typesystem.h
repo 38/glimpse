@@ -33,9 +33,27 @@ typedef struct _glimpse_typedesc{
 			const char* group; /* which group dose the type belongs */
 		} normal;
 	} param;
+	size_t properties_size;
 	char  properties[0]; /* properties might different from group to group */
 	/* DO NOT add any defination here */
 } GlimpseTypeDesc_t;
+
+/* memory pool for each type */
+struct _glimpse_type_pool_node;
+struct _glimpse_type_handler;
+typedef void* GlimpseTypeInstance_t;
+typedef struct _glimpse_type_pool_node{
+	/* DO NOT add any declearation here */
+	GlimpseTypeInstance_t instance;
+	struct _glimpse_type_handler* handler;
+	struct _glimpse_type_pool_node* prev; /* used only occupied */
+	struct _glimpse_type_pool_node* next;
+	uint8_t occupied:1;
+} GlimpseTypePoolNode_t;
+typedef struct _glimpse_type_pool{
+	GlimpseTypePoolNode_t* occupied;
+	GlimpseTypePoolNode_t* available;
+} GlimpseTypePool_t;
 
 /* contains handlers for each type, used for parse */
 typedef struct _glimpse_type_handler{
@@ -53,13 +71,19 @@ typedef struct _glimpse_type_handler{
 
 	/* free memory used by data */
 	void* free_data;
-	void (*free)(void* data, void* user_data);
+	int (*free)(void* data, void* user_data);
 
 	/* initialize data before use */
 	void* init_data;
-	void (*init)(void* data, void* user_data);
+	int (*init)(void* data, void* user_data);
+
+	/* finalize data after use */
+	void* finalize_data;
+	int (*finalize)(void* data, void* user_data);
 	
 	/* Add some new interface here to extend the framework */
+	GlimpseTypePool_t pool;
+
 } GlimpseTypeHandler_t;
 
 /* type group */
@@ -69,12 +93,28 @@ typedef struct _glimpse_type_group{
 	int (*resolve)(const GlimpseTypeDesc_t*, GlimpseTypeHandler_t*);
 }GlimpseTypeGroup_t;
 
+/* type descriptor manipulation */
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties);
-void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc);
+void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
+#ifndef __TYPESYSTEM_C__
+	__attribute__((warning("this function may cause problem if typedesc has been already queried")))
+#endif
+;
 
+/* type group manipulation */
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
-int glimpse_typesystem_query(GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler);  
 
-GlimpseTypeHandler_t* glimpse_typesystem_typehandler_new();
+/* handler operations */
+//GlimpseTypeHandler_t* glimpse_typesystem_typehandler_new();  /* managed by vector, not needed any more */
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler);
+GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
+void glimpse_typesystem_typehandler_free_instance(GlimpseTypeInstance_t* instance);
+
+
+/* type system */
+GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type);  
+int glimpse_typesystem_init();
+int glimpse_typesystem_cleanup();
+
+#define GLIMPSE_TYPE_INSTANCE_GET_MEMORY(var) (*var)
 #endif
