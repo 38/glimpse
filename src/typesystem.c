@@ -70,7 +70,7 @@ static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeD
 	else
 	{
 		if(strcmp(a->param.normal.group, b->param.normal.group)) return 0;
-		if(a->properties_size == b->properties_size) return 0;
+		if(a->properties_size != b->properties_size) return 0;
 		int i;
 		for(i = 0; i < a->properties_size; i ++)
 			if(a->properties[i] != b->properties[i]) return 0;
@@ -98,8 +98,12 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 	};
 	if(type->flags & GLIMPSE_TYPEFLAG_VECTOR)
 	{
-		handler.vector_element_handler[0] = glimpse_typesystem_query(type->param.vector.basetype);
-		if(NULL == handler.parse_data) return NULL; /* we does not need to free type handler any more */
+		handler.vector_param[0] = (GlimpseTypeVectorParserParam_t*)malloc(sizeof(GlimpseTypeVectorParserParam_t));
+		if(NULL == handler.vector_param[0]) return NULL;
+		handler.vector_param[0]->basetype_handler = glimpse_typesystem_query(type->param.vector.basetype);
+		handler.vector_param[0]->sep = type->param.vector.sep;
+		if(NULL == handler.vector_param[0]->basetype_handler) return NULL; /* we does not need to free type handler any more */
+		if(NULL == handler.vector_param[0]->sep) return NULL; /* we does not need to free type handler any more */
 		handler.init_data = NULL;
 		handler.free_data = type->param.vector.basetype;
 		handler.alloc_data = NULL;
@@ -156,6 +160,15 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 		GlimpseTypePoolNode_t* next = p->next;
 		if(handler->finalize) handler->finalize(p->instance, handler->finalize_data);
 		if(handler->free) handler->free(p->instance, handler->free_data);
+		free(p);
+		p = next;
+	}	
+	for(p = handler->pool.available; p;)
+	{
+		GlimpseTypePoolNode_t* next = p->next;
+		if(handler->free) handler->free(p->instance, handler->free_data);
+		free(p);
+		p = next;
 	}	
 	//for vector we does not need to free all element, because it will be done with other handler
 	//because all handler are allocated in _glimpse_typesystem_known_handler, we does not need free them
@@ -169,22 +182,24 @@ GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHa
 		ret = handler->pool.available;
 		handler->pool.available = handler->pool.available->next;
 		ret->occupied = 1;
+		GLIMPSE_LOG_DEBUG("reuse pooled memory at <0x%x>", ret->instance);
 	}
 	else
 	{
-		if(!ret->handler->alloc) return NULL;
+		if(!handler->alloc) return NULL;
 		ret = (GlimpseTypePoolNode_t*)malloc(sizeof(GlimpseTypePoolNode_t));
 		if(NULL == ret) return NULL;
 		ret->handler = handler;
 		ret->prev = NULL;
 		ret->next = NULL;
-		ret->instance = ret->handler->alloc(ret->handler->alloc_data);
+		ret->instance = handler->alloc(handler->alloc_data);
 		ret->occupied = 1;
 		if(NULL == ret->instance) 
 		{
 			free(ret);
 			return NULL;
 		}
+		GLIMPSE_LOG_DEBUG("allocated new memory at <0x%x>", ret->instance);
 	}
 	int rc = 0;
 	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
@@ -243,6 +258,8 @@ int glimpse_typesystem_cleanup()
 	{
 		GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler,i);
 		GlimpseTypeDesc_t* type = handler->type;
+		if(handler->type->flags & GLIMPSE_TYPEFLAG_VECTOR)  /* free memroy for vector's parser parameter */
+			if(handler->parse_data) free(handler->parse_data);
 		glimpse_typesystem_typehandler_free(handler);
 		glimpse_typesystem_typedesc_free(type);
 	}

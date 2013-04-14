@@ -129,7 +129,8 @@ int main()
 	glimpse_typesystem_init();
 	Glimpse_TypeAPI_init();
 	glimpse_pluginloader_path[0] = ".";
-	glimpse_pluginloader_path[1] = NULL;
+	glimpse_pluginloader_path[1] = "..";
+	glimpse_pluginloader_path[2] = NULL;
 	assert(0 == glimpse_pluginloader_load_plugin("integer"));
 	case0();
 	for(i = 0; i < 10000; i ++)

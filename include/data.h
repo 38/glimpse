@@ -15,7 +15,7 @@ typedef struct _glimpse_data_model_t{
 /* data instance of data model */
 typedef struct _glimpse_data_instance_t{
 	GlimpseDataModel_t* model;
-	void** data;
+	GlimpseTypeInstance_t** data;
 } GlimpseDataInstance_t;
 
 GlimpseDataModel_t* glimpse_data_model_new();

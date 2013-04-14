@@ -5,7 +5,6 @@
 void glimpse_init()
 {
 	glimpse_typesystem_init();
-	Glimpse_TypeAPI_init();
 }
 /* call the cleanup function */
 void glimpse_cleanup()

@@ -30,8 +30,9 @@ int glimpse_typeflag_vector_free(void* data, void* userdata)
 }
 const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data)
 {
-	GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)user_data;
-	if(handler->init == NULL || handler->free == NULL || handler->init == NULL || handler->parse == NULL)
+	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
+	GlimpseTypeHandler_t* handler = param->basetype_handler;
+	if(handler->parse == NULL)
 		return text;
 	const char* next;
 	GlimpseTypeInstance_t* instance;
@@ -61,10 +62,10 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		int i;
 		for(i = 0; 
 			text[i] != 0 && 
-			handler->type->param.vector.sep[i] != 0 && 
-			text[i] == handler->type->param.vector.sep[i];
+			param->sep != 0 && 
+			text[i] == param->sep[i];
 			i ++);
-		if(handler->type->param.vector.sep[i] == 0) text += i;
+		if(param->sep[i] == 0) text += i;
 		else return text;
 	}
 }

@@ -56,11 +56,16 @@ typedef struct _glimpse_type_pool{
 } GlimpseTypePool_t;
 
 /* contains handlers for each type, used for parse */
+struct _glimpse_type_handler;
+typedef struct _glimpse_type_vector_parser_param{
+	const char* sep;
+	struct _glimpse_type_handler* basetype_handler;
+} GlimpseTypeVectorParserParam_t;
 typedef struct _glimpse_type_handler{
 	GlimpseTypeDesc_t* type; /* type information */
 	
 	/* the parse function process text into specified data type, the procudt store in result */
-	struct _glimpse_type_handler* vector_element_handler[0];   /* vector reuse the parse_data as the element handler */
+	GlimpseTypeVectorParserParam_t* vector_param[0];   /* vector reuse the parse_data as the element handler */
 	GlimpseTypeDesc_t* sublog_tree[0];	/*reuse for sublog */
 	void* parse_data; /* pass the additional data used by parse function */
 	const char* (*parse)(const char* text, void* result, void* user_data);
