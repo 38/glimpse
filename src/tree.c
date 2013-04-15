@@ -30,20 +30,7 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	if(NULL == node) return;
 	if(node->term)
 	{
-		
-		if(NULL != node->s.terminus.handler) 
-		{
-			/*if(node->s.terminus.handler->type->flags&(GLIMPSE_TYPEFLAG_SUBLOG|GLIMPSE_TYPEFLAG_VECTOR|GLIMPSE_TYPEFLAG_MAP))
-			{
-				//TODO: free Vector,Map,Sublog
-			}
-			else
-			{
-				if(node->s.terminus.data) 
-					node->s.terminus.handler->free(node->s.terminus.data, node->s.terminus.handler->free_data);
-			}*/
-			free(node->s.terminus.handler); /*handler is allocated by glimpse_tree_insert */
-		}
+		/* bacause the handler is managed by the Type System, we do not need to free them here */
 	}
 	else if(NULL != node->s.child)	/* child table should be desposed */
 	{
@@ -64,15 +51,22 @@ GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv)
 	}
 	GlimpseParseTree_t* ret = (GlimpseParseTree_t*)malloc(sizeof(GlimpseParseTree_t));
 	if(NULL == ret) return NULL;
-	memset(ret, 0, sizeof(GlimpseParseTree_t));
+	ret->model = glimpse_data_model_new();
+	if(NULL == ret->model)
+	{
+		free(ret);
+		return NULL;
+	}
 	ret->sep_f = sep_f;
 	ret->sep_kv = sep_kv;
+	ret->root = NULL;
 	return ret;
 }
 void glimpse_tree_free(GlimpseParseTree_t* tree)
 {
 	if(NULL == tree) return;
 	if(NULL != tree->root) glimpse_tree_trienode_free(tree->root);
+	if(NULL != tree->model) glimpse_data_model_free(tree->model);
 }
 int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const char* kv)
 {
@@ -84,12 +78,12 @@ int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const cha
 int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseTypeDesc_t* type)
 {
 	if(NULL == tree || NULL == field || NULL == type) return EINVAILDARG;
-	if(NULL == tree->root) tree->root = glimpse_tree_trienode_new(0);
+	if(NULL == tree->root) tree->root = glimpse_tree_trienode_new(0); /* empty string not be term */
 	const char* p;
 	GlimpseTrieNode_t* cur = tree->root;
 	/* 
 	 * insert field to the trie, we assume the kv sep is a nonempty string 
-	 * so there will be no terminus
+	 * so there will be no terminus in `field'
 	 */
 	for(p = field; *p ; p ++)
 	{
@@ -176,19 +170,7 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 	}
 	cur->s.terminus.handler = glimpse_typesystem_query(type);
 	if(NULL == cur->s.terminus.handler) return EUNKNOWN;
-	/* if(type->flags&(GLIMPSE_TYPEFLAG_SUBLOG|GLIMPSE_TYPEFLAG_VECTOR|GLIMPSE_TYPEFLAG_MAP))
-	{
-		// TODO: allocate vector,sublog, map
-	}
-	else
-	{
-		cur->s.terminus.data = cur->s.terminus.handler->alloc(cur->s.terminus.handler->alloc_data);
-		if(NULL == cur->s.terminus.data)
-		{
-			GLIMPSE_LOG_ERROR("can not allocate memory for data %s", field);
-			return EUNKNOWN;
-		}
-	} */
+	glimpse_data_model_insert(tree->model, cur->s.terminus.handler);
 	return ESUCCESS;
 }
 

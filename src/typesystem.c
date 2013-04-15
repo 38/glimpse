@@ -137,7 +137,7 @@ ERR_VEC:
 			handler.finalize = glimpse_typeflag_sublog_finalize;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
-			//TODO
+			//TODO: handler for map 
 			break;
 		case GLIMPSE_TYPE_BUILTIN_NONE:
 			for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
