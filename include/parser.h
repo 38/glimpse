@@ -4,6 +4,6 @@
 #include <data.h>
 
 /* parse a log */
-const char* glimpse_parser_parse(GlimpseParseTree_t* tree, const char* text, char stop_char,GlimpseDataInstance_t* storage);
+const char* glimpse_parser_parse(GlimpseParseTree_t* tree, const char* text, GlimpseDataInstance_t* storage);
 
 #endif

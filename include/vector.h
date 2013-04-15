@@ -18,6 +18,4 @@ void glimpse_vector_free(GlimpseVector_t* vector);
 int glimpse_vector_push(GlimpseVector_t* vector, void* data);
 
 void* glimpse_vector_get(GlimpseVector_t* vector, int idx);
-
-//TODO: local object pool
 #endif

@@ -79,7 +79,7 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 		_CASE_SIZE(32);
 		_CASE_SIZE(64);
 		case GlimpseIntegerVariant:
-			//TODO
+			//TODO: big integer
 			PLUGIN_LOG_WARNING("Integer Plugin does not support big integer yet");
 			return -1;
 			break;

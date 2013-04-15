@@ -30,6 +30,7 @@ int glimpse_typeflag_vector_free(void* data, void* userdata)
 	glimpse_vector_free((GlimpseVector_t*)data);
 	return 0;
 }
+/* TODO: stop-set problem described in parser.c also affects this parser */
 const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data)
 {
 	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
@@ -47,7 +48,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			GLIMPSE_LOG_ERROR("can not allocate memory");
 			return NULL;
 		}
-		const char* next = handler->parse(text, instance, handler->parse_data);
+		const char* next = handler->parse(text, instance, handler->parse_data); /*TODO: modification needed for handler stack here */
 		if(NULL == next)
 		{
 			GLIMPSE_LOG_ERROR("failed to parse text");
