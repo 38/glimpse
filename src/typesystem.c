@@ -24,10 +24,13 @@ GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties)
 void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 {
 	if(NULL == typedesc) return;
-	if(typedesc->flags & GLIMPSE_TYPEFLAG_VECTOR)
+	/* because all types are record in the _glimpse_typesystem_known_handler, so 
+	 * we does not need to free them recursively
+	 */
+	/*if(typedesc->flags & GLIMPSE_TYPEFLAG_VECTOR)
 	{
 		glimpse_typesystem_typedesc_free(typedesc->param.vector.basetype); 
-	}
+	}*/
 	free(typedesc);
 }
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
@@ -173,7 +176,7 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 	//for vector we does not need to free all element, because it will be done with other handler
 	//because all handler are allocated in _glimpse_typesystem_known_handler, we does not need free them
 }
-GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
+void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 {
 	GlimpseTypePoolNode_t* ret;
 	if(NULL == handler) return NULL;
@@ -199,6 +202,12 @@ GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHa
 			free(ret);
 			return NULL;
 		}
+		if(ESUCCESS != glimpse_typesystem_instance_object_alias(ret->instance, ret))
+		{
+			GLIMPSE_LOG_ERROR("memory returned by alloc is not a valid type instance object");
+			free(ret);
+			return NULL;
+		}
 		GLIMPSE_LOG_DEBUG("allocated new memory at <0x%x>", ret->instance);
 	}
 	int rc = 0;
@@ -214,14 +223,15 @@ GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHa
 	ret->prev = NULL;
 	if(ret->handler->pool.occupied) ret->handler->pool.occupied->prev = ret;
 	ret->handler->pool.occupied = ret;
-	return &ret->instance;
+	return ret->instance;
 }
-void glimpse_typesystem_typehandler_free_instance(GlimpseTypeInstance_t* instance)
+void glimpse_typesystem_typehandler_free_instance(void* instance)
 {
 	if(NULL == instance) return;
-	GlimpseTypePoolNode_t* node = (GlimpseTypePoolNode_t*)instance;
-	if(!node->occupied) return;
-	if(node->handler->finalize) node->handler->finalize(*instance, node->handler->finalize_data);
+	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
+	if(NULL == node) return;
+	if(!node->occupied) return;  /* if it's not in use */
+	if(node->handler->finalize) node->handler->finalize(instance, node->handler->finalize_data);
 	node->occupied = 0;
 	/* remove from occupied list */
 	if(NULL == node->prev) /*first node*/
@@ -265,4 +275,39 @@ int glimpse_typesystem_cleanup()
 	}
 	glimpse_vector_free(_glimpse_typesystem_known_handler);
 	return ESUCCESS;
+}
+void* glimpse_typesystem_instance_object_alloc(size_t size)
+{
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)malloc(size + sizeof(GlimpseTypeInstanceObject_t));
+	if(NULL == ret) return NULL;
+	ret->magic = GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC;
+	return ret->data;
+}
+void glimpse_typesystem_instance_object_free(void* data)
+{
+	if(NULL == data) return;
+	if(!glimpse_typesystem_instance_object_check(data)) GLIMPSE_LOG_WARNING("memory at <0x%x> is not a instance object");
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	free(ret);
+}
+int glimpse_typesystem_instance_object_check(void* data)
+{
+	if(NULL == data) return 0;
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	if(ret->magic == GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC) return 1;
+	return 0;
+}
+int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj)
+{
+	if(!glimpse_typesystem_instance_object_check(data)) return EINVAILDARG;
+	if(NULL == pool_obj) return EINVAILDARG;
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	ret->pool_obj = pool_obj;
+	return ESUCCESS;
+}
+GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data)
+{
+	if(!glimpse_typesystem_instance_object_check(data)) return NULL;
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	return ret->pool_obj;
 }

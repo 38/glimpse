@@ -10,6 +10,8 @@ GlimpseAPIData(TypeAPI)
 		void (*WriteLog)(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...);
 		int  (*ExportSymbol)(const char* symbol, void* address);
 		void* (*ImportSymbol)(const char* symbol);
+		void* (*DataObjAlloc)(size_t size);
+		void  (*DataObjFree)(void* mem);
 	GlimpseAPIFunctionsEnd
 	//called by API
 	GlimpsePluginFunctions
@@ -24,6 +26,8 @@ void Glimpse_TypeAPI_init(void);
 #define ExternalFunction(func) typeof(&func) _glimpse_external_##func
 #define ImportFunction(func) do{ _glimpse_external_##func = Import(func); } while(0)
 #define ExternalCall(func, args...) (_glimpse_external_##func(##args))
+#define ObjAlloc(size) GlimpseAPICall(TypeAPI, DataObjAlloc, size)
+#define ObjFree(mem) GlimpseAPICall(TypeAPI, DataObjFree, mem)
 
 #define PLUGIN_LOG(level,fmt,arg...) do{\
 	WriteLog(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\

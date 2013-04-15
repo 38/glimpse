@@ -2,10 +2,11 @@
 #include <log.h>
 #include <string.h>
 #include <malloc.h>
+#include <typesystem.h>
 GlimpseVector_t* glimpse_vector_new(size_t elem_size)
 {
 	if(0 == elem_size) return NULL;
-	GlimpseVector_t* ret = (GlimpseVector_t*)malloc(sizeof(GlimpseVector_t));
+	GlimpseVector_t* ret = (GlimpseVector_t*)glimpse_typesystem_instance_object_alloc(sizeof(GlimpseVector_t));
 	if(NULL == ret) return NULL;
 	ret->capacity = GLIMPSE_VECTOR_INIT_CAP;
 	ret->size = 0;
@@ -26,7 +27,7 @@ void glimpse_vector_free(GlimpseVector_t* vector)
 {
 	if(NULL == vector) return;
 	if(vector->data) free(vector->data);
-	free(vector);
+	glimpse_typesystem_instance_object_free(vector);
 }
 
 static int _glimpse_vector_resize(GlimpseVector_t* vector)

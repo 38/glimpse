@@ -4,7 +4,7 @@
 #include <log.h>
 void* glimpse_typeflag_vector_alloc(void* userdata)
 {
-	return glimpse_vector_new(sizeof(GlimpseTypeInstance_t*));
+	return glimpse_vector_new(sizeof(void*));
 }
 int glimpse_typeflag_vector_init(void* data, void* userdata)
 {
@@ -18,9 +18,9 @@ int glimpse_typeflag_vector_finalize(void* data, void* userdata)
 	GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*) userdata;
 	for(i = 0; i < vec->size; i ++)
 	{
-		GlimpseTypeInstance_t* instance = (GlimpseTypeInstance_t*)glimpse_vector_get(vec, i);
-		if(NULL == instance) continue;
-		glimpse_typesystem_typehandler_free_instance(instance);
+		void** addr = (void**)glimpse_vector_get(vec, i);
+		if(NULL == addr) continue;
+		glimpse_typesystem_typehandler_free_instance(*addr);
 	}
 }
 int glimpse_typeflag_vector_free(void* data, void* userdata)  
@@ -35,7 +35,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 	if(handler->parse == NULL)
 		return text;
 	const char* next;
-	GlimpseTypeInstance_t* instance;
+	void* instance;
 	while(*text)
 	{
 		//memory = handler->alloc(handler->alloc_data);
@@ -45,7 +45,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			GLIMPSE_LOG_ERROR("can not allocate memory");
 			return NULL;
 		}
-		const char* next = handler->parse(text, *instance, handler->parse_data);
+		const char* next = handler->parse(text, instance, handler->parse_data);
 		if(NULL == next)
 		{
 			GLIMPSE_LOG_ERROR("failed to parse text");

@@ -12,7 +12,7 @@ typedef enum {
 void glimpse_log_write(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...);
 #define GLIMPSE_LOG(level,fmt,arg...) do{\
 	glimpse_log_write(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\
-}while(0);
+}while(0)
 #ifndef LOG_LEVEL
 	#define LOG_LEVEL 6
 #endif

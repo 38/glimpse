@@ -2,6 +2,7 @@
 #define __TYPESYSTEM_H__
 #include <stdlib.h>
 #include <stdint.h>
+#include <def.h>
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
@@ -41,10 +42,8 @@ typedef struct _glimpse_typedesc{
 /* memory pool for each type */
 struct _glimpse_type_pool_node;
 struct _glimpse_type_handler;
-typedef void* GlimpseTypeInstance_t;
 typedef struct _glimpse_type_pool_node{
-	/* DO NOT add any declearation here */
-	GlimpseTypeInstance_t instance;
+	void* instance;
 	struct _glimpse_type_handler* handler;
 	struct _glimpse_type_pool_node* prev; /* used only occupied */
 	struct _glimpse_type_pool_node* next;
@@ -54,6 +53,15 @@ typedef struct _glimpse_type_pool{
 	GlimpseTypePoolNode_t* occupied;
 	GlimpseTypePoolNode_t* available;
 } GlimpseTypePool_t;
+
+/* data object */
+#define GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC 0xfc354786u
+typedef struct _glimpse_type_instance_object{
+	uint32_t magic;  /* the magic number indicates data is managed by type system */
+	GlimpseTypePoolNode_t* pool_obj;
+	char data[0];
+	/* memory for data instance, DO NOT add any defination here */
+} GlimpseTypeInstanceObject_t;
 
 /* contains handlers for each type, used for parse */
 struct _glimpse_type_handler;
@@ -112,14 +120,19 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
 /* handler operations */
 //GlimpseTypeHandler_t* glimpse_typesystem_typehandler_new();  /* managed by vector, not needed any more */
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler);
-GlimpseTypeInstance_t* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
-void glimpse_typesystem_typehandler_free_instance(GlimpseTypeInstance_t* instance);
+void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
+void glimpse_typesystem_typehandler_free_instance(void* instance);
 
+/* instance object */
+void* glimpse_typesystem_instance_object_alloc(size_t size);
+void glimpse_typesystem_instance_object_free(void* data);
+int glimpse_typesystem_instance_object_check(void* data); /* check if the data is a instance object */
+GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data); /* get pool node which manage the memory */
+int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj); /*alias data with pool_obj*/
 
 /* type system */
 GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type);  
 int glimpse_typesystem_init();
 int glimpse_typesystem_cleanup();
 
-#define GLIMPSE_TYPE_INSTANCE_GET_MEMORY(var) (*var)
 #endif

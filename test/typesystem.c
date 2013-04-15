@@ -39,12 +39,12 @@ void case_type_pool()
 	h2 = init_handler();
 	assert(h1);
 	assert(h1 == h2);
-	GlimpseTypeInstance_t* inst1 = glimpse_typesystem_typehandler_new_instance(h1);
+	void* inst1 = glimpse_typesystem_typehandler_new_instance(h1);
 	glimpse_typesystem_typehandler_free_instance(inst1);
-	GlimpseTypeInstance_t* inst2 = glimpse_typesystem_typehandler_new_instance(h2);
+	void* inst2 = glimpse_typesystem_typehandler_new_instance(h2);
 	glimpse_typesystem_typehandler_free_instance(inst2);
 	int i = 0;
-	GlimpseTypeInstance_t* addr[1000];
+	void* addr[1000];
 	for(i = 0; i < 1000; i ++)
 	{
 		addr[i] = glimpse_typesystem_typehandler_new_instance(h1);
@@ -55,7 +55,7 @@ void case_type_pool()
 	assert(addr[213] == glimpse_typesystem_typehandler_new_instance(h1));
 	assert(addr[376] == glimpse_typesystem_typehandler_new_instance(h1));
 	assert(addr[439] == glimpse_typesystem_typehandler_new_instance(h1));
-	GlimpseTypeInstance_t* new = glimpse_typesystem_typehandler_new_instance(h1);
+	void* new = glimpse_typesystem_typehandler_new_instance(h1);
 	for(i = 0; i < 1000; i ++)
 		assert(new != addr[i]);
 }
@@ -64,13 +64,12 @@ void case_vector()
 	int i;
 	GlimpseTypeHandler_t *hint = init_handler();
 	GlimpseTypeHandler_t *hvec = vec_handler();
-	GlimpseTypeInstance_t* instance = glimpse_typesystem_typehandler_new_instance(hvec);
-	hvec->parse("0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0x10", *instance, hvec->parse_data);
-	for(i = 0; i < ((GlimpseVector_t*)*instance)->size; i ++)
+	void* instance = glimpse_typesystem_typehandler_new_instance(hvec);
+	hvec->parse("0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0x10", instance, hvec->parse_data);
+	for(i = 0; i < ((GlimpseVector_t*)instance)->size; i ++)
 	{
-		GlimpseTypeInstance_t** inst = (GlimpseTypeInstance_t**)glimpse_vector_get((GlimpseVector_t*)*instance , i);
-		int* res = (int*)**inst;
-		assert(*res == i + (i/10)*6);
+		int* inst = *(int**)glimpse_vector_get((GlimpseVector_t*)instance , i);
+		assert(*inst == i + (i/10)*6);
 	}
 }
 int main()

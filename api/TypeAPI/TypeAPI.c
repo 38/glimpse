@@ -8,6 +8,8 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.WriteLog = glimpse_log_write;
 	meta->api_functions.ExportSymbol = glimpse_symbol_exportsymbol;
 	meta->api_functions.ImportSymbol = glimpse_symbol_importsymbol;
+	meta->api_functions.DataObjAlloc = glimpse_typesystem_instance_object_alloc;
+	meta->api_functions.DataObjFree  = glimpse_typesystem_instance_object_free;
 	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
 	return 0;
 }
