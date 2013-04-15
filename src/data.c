@@ -41,27 +41,36 @@ GlimpseDataInstance_t* glimpse_data_instance_new(GlimpseDataModel_t* model)
 	GlimpseDataInstance_t* ret = (GlimpseDataInstance_t*)glimpse_typesystem_instance_object_alloc(
 					sizeof(GlimpseDataInstance_t) + GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model)*sizeof(void*)); 
 	if(NULL == ret) return NULL;
-	GlimpseDataMember_t* p, *q;
-	for(p = model->members; p; p = p->next)
-	{
-		ret->data[p->idx] = glimpse_typesystem_typehandler_new_instance(p->handler);
-		if(NULL == ret->data[p->idx]) goto ERR;
-	}
+	ret->model = model; 
 	return ret;
-ERR:
-	for(q = model->members; q && q != p; q = q->next)
-		glimpse_typesystem_typehandler_free_instance(ret->data[p->idx]);
-	glimpse_typesystem_instance_object_free(ret);
-	return NULL;
 }
 void glimpse_data_instance_free(GlimpseDataInstance_t* instance)
 {
-	if(NULL == instance) return;
-	GlimpseDataModel_t* model = instance->model;
-	GlimpseDataMember_t* p;
-	int i;
-	for(i = 0; 
-		i < GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model); i ++)
-		glimpse_typesystem_typehandler_free_instance(instance->data[i]);
+	/* because all members are freed while its own type handler desposed, 
+	 * so we does not free anything here */
 	glimpse_typesystem_instance_object_free(instance);
+}
+int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
+{
+	if(NULL == instance) return EINVAILDARG;
+	GlimpseDataModel_t* model = instance->model;
+	if(NULL == model) return EINVAILDARG;
+	
+	GlimpseDataMember_t* p, *q;
+	for(p = model->members; p; p = p->next)
+	{
+		instance->data[p->idx] = glimpse_typesystem_typehandler_new_instance(p->handler);
+		if(NULL == instance->data[p->idx]) goto ERR;
+	}
+ERR:
+	for(q = model->members; q && q != p; q = q->next)
+		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
+	return EUNKNOWN;
+}
+void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
+{
+	GlimpseDataModel_t* model = instance->model;
+	GlimpseDataMember_t *p;
+	for(p = model->members; p; p = p->next)
+		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
 }

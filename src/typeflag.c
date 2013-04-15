@@ -2,6 +2,7 @@
 #include <typesystem.h>
 #include <vector.h>
 #include <log.h>
+#include <data.h>
 void* glimpse_typeflag_vector_alloc(void* userdata)
 {
 	return glimpse_vector_new(sizeof(void*));
@@ -22,6 +23,7 @@ int glimpse_typeflag_vector_finalize(void* data, void* userdata)
 		if(NULL == addr) continue;
 		glimpse_typesystem_typehandler_free_instance(*addr);
 	}
+	return 0;
 }
 int glimpse_typeflag_vector_free(void* data, void* userdata)  
 {
@@ -69,39 +71,25 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		else return text;
 	}
 }
-/*
 void* glimpse_typeflag_sublog_alloc(void* userdata)
 {
-	//TODO
+	return glimpse_data_instance_new((GlimpseDataModel_t*)userdata);
 }
-void glimpse_typeflag_sublog_init(void* data, void* userdata)
+int glimpse_typeflag_sublog_free(void* data, void* userdata)
 {
-	//TODO
+	glimpse_data_instance_free((GlimpseDataInstance_t*)data);
+	return 0;
 }
-void glimpse_typeflag_sublog_free(void* data, void* userdata)
+int glimpse_typeflag_sublog_init(void* data, void* userdata)
 {
-	//TODO
+	return glimpse_data_instance_init((GlimpseDataInstance_t*)data);
+}
+int glimpse_typeflag_sublog_finalize(void* data, void* userdata)
+{
+	glimpse_data_instance_finalize((GlimpseDataInstance_t*)data);
+	return 0;
 }
 const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* user_data)
 {
-	//TODO
+	//TODO: parse the log 
 }
-
-void* glimpse_typeflag_map_alloc(void* userdata)
-{
-	//TODO
-}
-void glimpse_typeflag_map_init(void* data, void* userdata)
-{
-	//TODO
-}
-void glimpse_typeflag_map_free(void* data, void* userdata)
-{
-	//TODO
-}
-
-const char* glimpse_typeflag_map_parse(const char* text, void* result, void* user_data)
-{
-	//TODO
-}
-*/

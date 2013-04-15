@@ -54,29 +54,30 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 }
 static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeDesc_t* b)
 {
+	int i;
 	if(a == b) return 1;
 	if(a == NULL || b == NULL) return 0;
-	if(a->flags != b->flags) return 0;
-	if(a->flags & GLIMPSE_TYPEFLAG_VECTOR)
+	if(a->builtin_type != b->builtin_type) return 0;
+	switch(a->builtin_type)
 	{
-		if(strcmp(a->param.vector.sep, b->param.vector.sep)) return 0;
-		if(!_glimpse_typesystem_typedesc_equal(a->param.vector.basetype,b->param.vector.basetype)) return 0;
-	}
-	else if(a->flags & GLIMPSE_TYPEFLAG_SUBLOG)
-	{
-		if(a->param.sublog.tree != a->param.sublog.tree) return 0;
-	}
-	else if(a->flags & GLIMPSE_TYPEFLAG_MAP)
-	{
-		if(strcmp(a->param.map.target, b->param.map.target)) return 0;
-	}
-	else
-	{
-		if(strcmp(a->param.normal.group, b->param.normal.group)) return 0;
-		if(a->properties_size != b->properties_size) return 0;
-		int i;
-		for(i = 0; i < a->properties_size; i ++)
-			if(a->properties[i] != b->properties[i]) return 0;
+		case GLIMPSE_TYPE_BUILTIN_VECTOR: 
+			if(strcmp(a->param.vector.sep, b->param.vector.sep)) return 0;
+			if(!_glimpse_typesystem_typedesc_equal(a->param.vector.basetype,b->param.vector.basetype)) return 0;
+			break;
+		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
+			if(a->param.sublog.tree != a->param.sublog.tree) return 0;
+			break;
+		case GLIMPSE_TYPE_BUILTIN_MAP:
+			if(strcmp(a->param.map.target, b->param.map.target)) return 0;
+			break;
+		case GLIMPSE_TYPE_BUILTIN_NONE:
+			if(strcmp(a->param.normal.group, b->param.normal.group)) return 0;
+			if(a->properties_size != b->properties_size) return 0;
+			for(i = 0; i < a->properties_size; i ++)
+				if(a->properties[i] != b->properties[i]) return 0;
+			break;
+		default:
+			GLIMPSE_LOG_WARNING("invalid builtin type %d\n", a->builtin_type);
 	}
 	return 1;
 }
@@ -99,46 +100,61 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 	GlimpseTypeHandler_t handler = {
 		.type = type
 	};
-	if(type->flags & GLIMPSE_TYPEFLAG_VECTOR)
+	switch(type->builtin_type)
 	{
-		handler.vector_param[0] = (GlimpseTypeVectorParserParam_t*)malloc(sizeof(GlimpseTypeVectorParserParam_t));
-		if(NULL == handler.vector_param[0]) return NULL;
-		handler.vector_param[0]->basetype_handler = glimpse_typesystem_query(type->param.vector.basetype);
-		handler.vector_param[0]->sep = type->param.vector.sep;
-		if(NULL == handler.vector_param[0]->basetype_handler) return NULL; /* we does not need to free type handler any more */
-		if(NULL == handler.vector_param[0]->sep) return NULL; /* we does not need to free type handler any more */
-		handler.init_data = NULL;
-		handler.free_data = type->param.vector.basetype;
-		handler.alloc_data = NULL;
-		handler.finalize_data = type->param.vector.basetype;
-		handler.parse = glimpse_typeflag_vector_parse;
-		handler.init = glimpse_typeflag_vector_init;
-		handler.free = glimpse_typeflag_vector_free;
-		handler.alloc = glimpse_typeflag_vector_alloc;
-		handler.finalize = glimpse_typeflag_vector_finalize;
-	}
-	else if(type->flags & GLIMPSE_TYPEFLAG_SUBLOG)
-	{
-		/* TODO: sub log handlers */
-	}
-	else if(type->flags & GLIMPSE_TYPEFLAG_MAP)
-	{
-		/* TODO: map handlers */
-	}
-	else
-	{
-		for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
-			if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, type->param.normal.group) == 0)
-			{
-				int ret = _glimpse_typesystem_typegroup_list[i]->resolve(type, &handler);
-				if(ESUCCESS != ret) 
+		case GLIMPSE_TYPE_BUILTIN_VECTOR:
+			handler.vector_parser_param[0] = (GlimpseTypeVectorParserParam_t*)malloc(sizeof(GlimpseTypeVectorParserParam_t));
+			if(NULL == handler.vector_parser_param[0]) goto ERR_VEC;
+			handler.vector_parser_param[0]->basetype_handler = glimpse_typesystem_query(type->param.vector.basetype);
+			if(NULL == handler.vector_parser_param[0]->basetype_handler) goto ERR_VEC; /* we does not need to free type handler any more */
+			handler.vector_parser_param[0]->sep = type->param.vector.sep;
+			if(NULL == handler.vector_parser_param[0]->sep) goto ERR_VEC;
+			handler.init_data = NULL;
+			handler.free_data = type->param.vector.basetype;
+			handler.alloc_data = NULL;
+			handler.finalize_data = type->param.vector.basetype;
+			handler.parse = glimpse_typeflag_vector_parse;
+			handler.init = glimpse_typeflag_vector_init;
+			handler.free = glimpse_typeflag_vector_free;
+			handler.alloc = glimpse_typeflag_vector_alloc;
+			handler.finalize = glimpse_typeflag_vector_finalize;
+			break;
+ERR_VEC:
+			if(handler.vector_parser_param[0]) free(handler.vector_parser_param[0]);
+			return NULL;
+		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
+			if(NULL == type->param.sublog.tree) return NULL;
+			if(NULL == type->param.sublog.tree->model) return NULL;
+			handler.sublog_parser_param[0] = type->param.sublog.tree;
+			handler.sublog_alloc_param[0] = type->param.sublog.tree->model;
+			handler.init_data = NULL;
+			handler.free_data = NULL;
+			handler.finalize_data = NULL;
+			handler.parse = glimpse_typeflag_sublog_parse;
+			handler.alloc = glimpse_typeflag_sublog_alloc;
+			handler.free  = glimpse_typeflag_sublog_free;
+			handler.init  = glimpse_typeflag_sublog_init;
+			handler.finalize = glimpse_typeflag_sublog_finalize;
+			break;
+		case GLIMPSE_TYPE_BUILTIN_MAP:
+			//TODO
+			break;
+		case GLIMPSE_TYPE_BUILTIN_NONE:
+			for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
+				if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, type->param.normal.group) == 0)
 				{
-					glimpse_typesystem_typedesc_free(type);
-					return NULL;
+					int ret = _glimpse_typesystem_typegroup_list[i]->resolve(type, &handler);
+					if(ESUCCESS != ret) 
+					{
+						glimpse_typesystem_typedesc_free(type);
+						return NULL;
+					}
+					break;
 				}
-				break;
-			}
-		if(i == _glimpse_typesystem_typegroup_count) return NULL;
+			if(i == _glimpse_typesystem_typegroup_count) return NULL;
+			break;
+		default:
+			GLIMPSE_LOG_ERROR("invalid builtin type %d\n", type->builtin_type);
 	}
 
 	int rc = glimpse_vector_push(_glimpse_typesystem_known_handler, &handler);
@@ -158,7 +174,7 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 {
 	if(NULL == handler) return;
 	GlimpseTypePoolNode_t* p;
-	for(p = handler->pool.occupied; p;)
+	for(p = handler->pool.occupied_list; p;)
 	{
 		GlimpseTypePoolNode_t* next = p->next;
 		if(handler->finalize) handler->finalize(p->instance, handler->finalize_data);
@@ -166,7 +182,7 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 		free(p);
 		p = next;
 	}	
-	for(p = handler->pool.available; p;)
+	for(p = handler->pool.available_list; p;)
 	{
 		GlimpseTypePoolNode_t* next = p->next;
 		if(handler->free) handler->free(p->instance, handler->free_data);
@@ -180,10 +196,10 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 {
 	GlimpseTypePoolNode_t* ret;
 	if(NULL == handler) return NULL;
-	if(handler->pool.available) /* if there's some available data instance */
+	if(handler->pool.available_list) /* if there's some available data instance */
 	{
-		ret = handler->pool.available;
-		handler->pool.available = handler->pool.available->next;
+		ret = handler->pool.available_list;
+		handler->pool.available_list = handler->pool.available_list->next;
 		ret->occupied = 1;
 		GLIMPSE_LOG_DEBUG("reuse pooled memory at <0x%x>", ret->instance);
 	}
@@ -214,15 +230,15 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
 	if(ESUCCESS != rc)  /*if init failed insert the node into available list*/
 	{
-		ret->next = ret->handler->pool.available;
-		ret->handler->pool.available = ret;
+		ret->next = ret->handler->pool.available_list;
+		ret->handler->pool.available_list = ret;
 		return NULL;
 	}
 	/* insert the new instance into occupied list */
-	ret->next = ret->handler->pool.occupied;
+	ret->next = ret->handler->pool.occupied_list;
 	ret->prev = NULL;
-	if(ret->handler->pool.occupied) ret->handler->pool.occupied->prev = ret;
-	ret->handler->pool.occupied = ret;
+	if(ret->handler->pool.occupied_list) ret->handler->pool.occupied_list->prev = ret;
+	ret->handler->pool.occupied_list = ret;
 	return ret->instance;
 }
 void glimpse_typesystem_typehandler_free_instance(void* instance)
@@ -236,7 +252,7 @@ void glimpse_typesystem_typehandler_free_instance(void* instance)
 	/* remove from occupied list */
 	if(NULL == node->prev) /*first node*/
 	{
-		node->handler->pool.occupied = node->next;
+		node->handler->pool.occupied_list = node->next;
 		if(node->next) node->next->prev = NULL;
 	}
 	else if(NULL == node->next) /*last node*/
@@ -250,8 +266,8 @@ void glimpse_typesystem_typehandler_free_instance(void* instance)
 	}
 	/* add it to available list */
 	node->prev = NULL;
-	node->next = node->handler->pool.available;
-	node->handler->pool.available = node;
+	node->next = node->handler->pool.available_list;
+	node->handler->pool.available_list = node;
 }
 
 int glimpse_typesystem_init()
@@ -268,7 +284,7 @@ int glimpse_typesystem_cleanup()
 	{
 		GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler,i);
 		GlimpseTypeDesc_t* type = handler->type;
-		if(handler->type->flags & GLIMPSE_TYPEFLAG_VECTOR)  /* free memroy for vector's parser parameter */
+		if(handler->type->builtin_type == GLIMPSE_TYPE_BUILTIN_VECTOR)  /* free memroy for vector's parser parameter */
 			if(handler->parse_data) free(handler->parse_data);
 		glimpse_typesystem_typehandler_free(handler);
 		glimpse_typesystem_typedesc_free(type);

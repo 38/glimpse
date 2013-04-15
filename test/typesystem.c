@@ -9,7 +9,8 @@ GlimpseTypeHandler_t* init_handler()
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)td->properties;
 	td->param.normal.group = "integer";
-	td->flags = 0;
+	td->builtin_type = 0;
+	td->extrapulated = 0;
 	properties->Size = GlimpseInteger32;
 	properties->Signed = 1;
 	properties->Representation = GlimpseIntegerHex;
@@ -20,11 +21,12 @@ GlimpseTypeHandler_t* init_handler()
 GlimpseTypeHandler_t* vec_handler()
 {
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(0);
-	td->flags = GLIMPSE_TYPEFLAG_VECTOR;
+	td->builtin_type = GLIMPSE_TYPE_BUILTIN_VECTOR;
+	td->extrapulated = 0;
 	td->param.vector.sep = ",";
 	td->param.vector.basetype = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)td->param.vector.basetype->properties;
-	td->param.vector.basetype->flags = 0;
+	td->param.vector.basetype->builtin_type = GLIMPSE_TYPE_BUILTIN_NONE;
 	td->param.vector.basetype->param.normal.group = "integer";
 	properties->Size = GlimpseInteger32;
 	properties->Signed = 1;

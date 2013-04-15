@@ -3,38 +3,49 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <def.h>
+#include <data.h>
+#include <tree.h>
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
-#define GLIMPSE_TYPEFLAG_SUBLOG 0x1
-#define GLIMPSE_TYPEFLAG_VECTOR 0x2
-#define GLIMPSE_TYPEFLAG_EXTRAPULATE 0x4
-#define GLIMPSE_TYPEFLAG_MAP 0x8
-/* SUBLOG, VECTOR, MAP are exclusive */
-/* Previous decleration for GlimpseParseTree_t 
- * which defined in file tree.h
- */
+
+typedef struct _glimpse_parse_tree GlimpseParseTree_t; 
+typedef struct _glimpse_data_model_t GlimpseDataModel_t;
+
+/* define builtin types */
+typedef enum{
+	GLIMPSE_TYPE_BUILTIN_NONE,
+	GLIMPSE_TYPE_BUILTIN_VECTOR,
+	GLIMPSE_TYPE_BUILTIN_SUBLOG,
+	GLIMPSE_TYPE_BUILTIN_MAP
+} GlimpseBuiltinTypeFlag_t;
 struct _glimpse_parse_tree;
-typedef struct _glimpse_parse_tree GlimpseParseTree_t;
+
 /* Type descriptor */
 typedef struct _glimpse_typedesc{
-	uint32_t flags; /*type flags*/
+	GlimpseBuiltinTypeFlag_t builtin_type:2; /* which of builtin type are selected */
+	uint8_t extrapulated:1;					 /* is the data are extrapulated from other data, ranther than parsed from text? */
+	/* following union are the parameter for each type */
 	union {
+		/* this type is a vector */
 		struct{
 			char* sep;    /* seprator of vector if the type decleared as a vector, valid when Vector Flag is set*/
 			struct _glimpse_typedesc* basetype; /* base type of vector */
 		} vector;
+		/* this type refers to another log */
 		struct {
 			GlimpseParseTree_t* tree; /* indicate the parse method of sublog, valid when sublog flag is set*/
 		} sublog;
+		/* this type refers to another field */
 		struct {
 			const char* target; /* the target of the map */
 		} map;
+		/* this type is a normall type that defined by type plugin */
 		struct {
 			const char* group; /* which group dose the type belongs */
 		} normal;
 	} param;
-	size_t properties_size;
+	size_t properties_size; /* length of type properties */
 	char  properties[0]; /* properties might different from group to group */
 	/* DO NOT add any defination here */
 } GlimpseTypeDesc_t;
@@ -42,47 +53,65 @@ typedef struct _glimpse_typedesc{
 /* memory pool for each type */
 struct _glimpse_type_pool_node;
 struct _glimpse_type_handler;
+/* each type pool node manages a instance */
 typedef struct _glimpse_type_pool_node{
-	void* instance;
-	struct _glimpse_type_handler* handler;
+	void* instance;	 /* address of instance */
+	struct _glimpse_type_handler* handler; /* indicates operations */
+	
 	struct _glimpse_type_pool_node* prev; /* used only occupied */
 	struct _glimpse_type_pool_node* next;
-	uint8_t occupied:1;
+	
+	uint8_t occupied:1;  /* is the memory currently in use */
+
 } GlimpseTypePoolNode_t;
+
+/* memery pool */
 typedef struct _glimpse_type_pool{
-	GlimpseTypePoolNode_t* occupied;
-	GlimpseTypePoolNode_t* available;
+	GlimpseTypePoolNode_t* occupied_list;	/* list of occupied memory */	
+	GlimpseTypePoolNode_t* available_list;   /* list of available memory */
 } GlimpseTypePool_t;
 
 /* data object */
 #define GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC 0xfc354786u
 typedef struct _glimpse_type_instance_object{
 	uint32_t magic;  /* the magic number indicates data is managed by type system */
-	GlimpseTypePoolNode_t* pool_obj;
-	char data[0];
+	GlimpseTypePoolNode_t* pool_obj; /* reference to pool object that manage this memory */
+	char data[0];	/* data section */
 	/* memory for data instance, DO NOT add any defination here */
 } GlimpseTypeInstanceObject_t;
 
-/* contains handlers for each type, used for parse */
+/* data type for the parser parameter for vector */
 struct _glimpse_type_handler;
 typedef struct _glimpse_type_vector_parser_param{
-	const char* sep;
-	struct _glimpse_type_handler* basetype_handler;
+	const char* sep;  /* seperator of the vector */
+	struct _glimpse_type_handler* basetype_handler; /* indicates the type of elements */
 } GlimpseTypeVectorParserParam_t;
+
+/* Type handler is a group of operation that use to data manipulation
+ * the Glimpse Type System use the handler to manipulate data in various types
+ * You can use a Type Descriptor to QUERY the type system in order to obtain a
+ * Type handler. 
+ */
 typedef struct _glimpse_type_handler{
+
 	GlimpseTypeDesc_t* type; /* type information */
 	
 	/* the parse function process text into specified data type, the procudt store in result */
-	GlimpseTypeVectorParserParam_t* vector_param[0];   /* vector reuse the parse_data as the element handler */
-	GlimpseTypeDesc_t* sublog_tree[0];	/*reuse for sublog */
+	GlimpseTypeVectorParserParam_t* vector_parser_param[0];   /* vector reuse the parse_data as the element handler */
+	GlimpseParseTree_t* sublog_parser_param[0];	/*reuse for sublog */
 	void* parse_data; /* pass the additional data used by parse function */
-	const char* (*parse)(const char* text, void* result, void* user_data);
+	const char* (*parse)(const char* text, void* result, void* user_data); /* function for parse data from text */
 	
 	/* alloc memory for data storage */
-	void* alloc_data;
+	/* NOTICE: any initialization should not be performed in this function
+	 *         you should only allocate memory for this data
+	 */
+	GlimpseDataModel_t* sublog_alloc_param[0];
+	void* alloc_data; 
 	void* (*alloc)(void* user_data);
 
 	/* free memory used by data */
+	/* NOTICE: release the memory only, DO NOT do any finalization */
 	void* free_data;
 	int (*free)(void* data, void* user_data);
 
@@ -95,15 +124,16 @@ typedef struct _glimpse_type_handler{
 	int (*finalize)(void* data, void* user_data);
 	
 	/* Add some new interface here to extend the framework */
-	GlimpseTypePool_t pool;
+
+
+	GlimpseTypePool_t pool; /* memory pool for this data type */
 
 } GlimpseTypeHandler_t;
 
 /* type group */
 typedef struct _glimpse_type_group{
-	/* name of the type group */
-	char* name;
-	int (*resolve)(const GlimpseTypeDesc_t*, GlimpseTypeHandler_t*);
+	char* name;  /* group name */
+	int (*resolve)(const GlimpseTypeDesc_t*, GlimpseTypeHandler_t*); /* function for resolve type */
 }GlimpseTypeGroup_t;
 
 /* type descriptor manipulation */
@@ -118,8 +148,7 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
 
 /* handler operations */
-//GlimpseTypeHandler_t* glimpse_typesystem_typehandler_new();  /* managed by vector, not needed any more */
-void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler);
+void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler); 
 void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
 void glimpse_typesystem_typehandler_free_instance(void* instance);
 
