@@ -32,7 +32,6 @@ static inline void _glimpse_check_types()
 /* call the init function */
 void glimpse_init()
 {
-	_glimpse_check_types();
 	glimpse_typesystem_init();
 }
 /* call the cleanup function */
