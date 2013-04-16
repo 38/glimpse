@@ -1,0 +1,3 @@
+1. thread safe
+2. signal for scanner to stop
+3. single value parser ... // a log parser is a parser for single value type, the type is a sublog
