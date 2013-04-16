@@ -1,5 +1,6 @@
 #ifndef __LOG_H__
 #define __LOG_H__
+#include <future.h>
 typedef enum {
 	FATAL,
 	ERROR,

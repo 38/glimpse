@@ -1,5 +1,6 @@
 #ifndef __TYPEFLAG_H__
 #define __TYPEFLAG_H__
+#include <future.h>
 /* interfaces for process log,vector,map as normal type */
 
 /* vector interface */

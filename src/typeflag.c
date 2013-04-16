@@ -62,6 +62,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			glimpse_typesystem_typehandler_free_instance(instance);
 		}
 		text = next;
+#ifdef STRING_SEPERATOR_SUPPORT
 		int i;
 		for(i = 0; 
 			text[i] != 0 && 
@@ -70,6 +71,10 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			i ++);
 		if(param->sep[i] == 0) text += i;
 		else return text;
+#else
+		if(text[0] && text[0] == param->sep) text ++;
+		else return text;
+#endif
 	}
 }
 void* glimpse_typeflag_sublog_alloc(void* userdata)

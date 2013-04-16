@@ -1,5 +1,6 @@
 #ifndef __TYPESYSTEM_H__
 #define __TYPESYSTEM_H__
+#include <future.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <def.h>
@@ -29,7 +30,11 @@ typedef struct _glimpse_typedesc{
 	union {
 		/* this type is a vector */
 		struct{
+#ifdef STRING_SEPERATOR_SUPPORT
 			char* sep;    /* seprator of vector if the type decleared as a vector, valid when Vector Flag is set*/
+#else
+			char sep; 	  /* in the first version of glimpse we only support seperator of string */
+#endif
 			struct _glimpse_typedesc* basetype; /* base type of vector */
 		} vector;
 		/* this type refers to another log */
@@ -83,7 +88,11 @@ typedef struct _glimpse_type_instance_object{
 /* data type for the parser parameter for vector */
 struct _glimpse_type_handler;
 typedef struct _glimpse_type_vector_parser_param{
+#ifdef STRING_SEPERATOR_SUPPORT
 	const char* sep;  /* seperator of the vector */
+#else
+	char sep;
+#endif
 	struct _glimpse_type_handler* basetype_handler; /* indicates the type of elements */
 } GlimpseTypeVectorParserParam_t;
 

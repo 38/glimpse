@@ -1,5 +1,6 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
+#include <future.h>
 #include <stdlib.h>
 #include <retval.h>
 #ifndef GLIMPSE_VECTOR_INIT_CAP

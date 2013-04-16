@@ -41,14 +41,20 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	}
 	free(node);
 }
+#ifdef STRING_SEPERATOR_SUPPORT
 GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv)
+#else
+GlimpseParseTree_t* glimpse_tree_new(char sep_f, char sep_kv)
+#endif
 {
+#ifdef STRING_SEPERATOR_SUPPORT
 	if(NULL == sep_f || NULL== sep_kv) return NULL;
 	if(strlen(sep_f) == 0 || strlen(sep_kv) == 0)
 	{
 		GLIMPSE_LOG_ERROR("glimpse can not parse log with no key-value/field seperator");
 		return NULL;
 	}
+#endif
 	GlimpseParseTree_t* ret = (GlimpseParseTree_t*)malloc(sizeof(GlimpseParseTree_t));
 	if(NULL == ret) return NULL;
 	ret->model = glimpse_data_model_new();
@@ -68,11 +74,20 @@ void glimpse_tree_free(GlimpseParseTree_t* tree)
 	if(NULL != tree->root) glimpse_tree_trienode_free(tree->root);
 	if(NULL != tree->model) glimpse_data_model_free(tree->model);
 }
+#ifdef STRING_SEPERATOR_SUPPORT
 int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const char* kv)
+#else
+int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, char f, char kv)
+#endif
 {
 	if(NULL == tree) return EINVAILDARG;
+#ifdef STRING_SEPERATOR_SUPPORT
 	if(NULL != f && strlen(f) != 0) tree->sep_f = f;
 	if(NULL != kv && strlen(kv) != 0) tree->sep_kv = kv;
+#else
+	tree->sep_f = f;
+	tree->sep_kv = kv;
+#endif
 	return ESUCCESS;
 }
 int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseTypeDesc_t* type)
@@ -127,6 +142,7 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 		}
 		cur = next; /* go down through the edge */
 	}
+#ifdef STRING_SEPERATOR_SUPPORT
 	/*
 	 * insert k-v sep into tree
 	 */
@@ -163,6 +179,45 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 		}
 		cur = next;
 	}
+#else
+	/* check if the field is ambigious */
+	if(cur->term == 1)
+	{
+		char buffer[32];
+		size_t trunc = sizeof(buffer);
+		size_t len = strlen(field) - 1;
+		strncpy(buffer, field, trunc);
+		GLIMPSE_LOG_ERROR("ambigous key name %s(new) and %s(old)", field, buffer);
+		return EINVAILDARG;
+	}
+
+	uint8_t val = (uint8_t) tree->sep_kv;
+	GlimpseTrieNode_t* next = (GlimpseTrieNode_t*)glimpse_chartable_find(cur->s.child, val);
+	
+	if(NULL == next)
+	{
+		GlimpseTrieNode_t* new = glimpse_tree_trienode_new(1);  /* it's a terminus */
+		if(NULL == new)
+		{
+			GLIMPSE_LOG_ERROR("can not create new trienode");
+			return EUNKNOWN;
+		}
+		int rc = glimpse_chartable_insert(cur->s.child, val, new);
+		if(rc != ESUCCESS)
+		{
+			glimpse_tree_trienode_free(new);
+			GLIMPSE_LOG_ERROR("can not insert new trienode to chartable");
+			return rc;
+		}
+		next = new;
+	}
+	else if(next->term)
+	{
+		GLIMPSE_LOG_ERROR("duplicated field");
+		return EINVAILDARG;
+	}
+	cur = next;
+#endif
 	if(!cur->term) /* check if cur->term == 1 */
 	{
 		GLIMPSE_LOG_ERROR("cur->term unexceptedly be 0");

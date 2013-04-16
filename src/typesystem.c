@@ -61,7 +61,11 @@ static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeD
 	switch(a->builtin_type)
 	{
 		case GLIMPSE_TYPE_BUILTIN_VECTOR: 
+#ifdef STRING_SEPERATOR_SUPPORT
 			if(strcmp(a->param.vector.sep, b->param.vector.sep)) return 0;
+#else
+			if(a->param.vector.sep == b->param.vector.sep) return 0;
+#endif
 			if(!_glimpse_typesystem_typedesc_equal(a->param.vector.basetype,b->param.vector.basetype)) return 0;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
@@ -108,7 +112,9 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 			handler.vector_parser_param[0]->basetype_handler = glimpse_typesystem_query(type->param.vector.basetype);
 			if(NULL == handler.vector_parser_param[0]->basetype_handler) goto ERR_VEC; /* we does not need to free type handler any more */
 			handler.vector_parser_param[0]->sep = type->param.vector.sep;
+#ifdef STRING_SEPERATOR_SUPPORT
 			if(NULL == handler.vector_parser_param[0]->sep) goto ERR_VEC;
+#endif
 			handler.init_data = NULL;
 			handler.free_data = type->param.vector.basetype;
 			handler.alloc_data = NULL;

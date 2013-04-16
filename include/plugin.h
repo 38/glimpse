@@ -1,5 +1,6 @@
 #ifndef __PLUGIN_H__
 #define __PLUGIN_H__
+#include <future.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>

@@ -1,5 +1,6 @@
 #ifndef __TREE_H__
 #define __TREE_H__
+#include <future.h>
 #include <log.h>
 #include <chartable.h>
 #include <typesystem.h>
@@ -25,15 +26,28 @@ GlimpseTrieNode_t* glimpse_tree_trienode_new(int terminus);   /* terminus indica
 void glimpse_tree_trienode_free(GlimpseTrieNode_t* node);
 
 typedef struct _glimpse_parse_tree{
+#ifdef STRING_SEPERATOR_SUPPORT
 	const char* sep_f;  /* seperator between feilds */
 	const char* sep_kv; /* seperator between key and value */
+#else
+	char sep_f;
+	char sep_kv;
+#endif /* STRING_SEPERATOR_SUPPORT */
 	GlimpseTrieNode_t* root;
 	GlimpseDataModel_t* model; /* data model for log */
 } GlimpseParseTree_t;
 /* Tree manipulation */
-GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv);
+#ifdef STRING_SEPERATOR_SUPPORT
+GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv);  /* future */
+#else
+GlimpseParseTree_t* glimpse_tree_new(char sep_f, char sep_kv);
+#endif /*STRING_SEPERATOR_SUPPORT*/
 void glimpse_tree_free(GlimpseParseTree_t* tree);
-int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const char* kv);
+#ifdef STRING_SEPERATOR_SUPPORT
+int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const char* kv); /* future */
+#else 
+int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, char f, char kv);
+#endif /*STRING_SEPERATOR_SUPPORT*/
 int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseTypeDesc_t* type);
 /* Operation */
 typedef GlimpseTrieNode_t* GlimpseParserStatus_t;

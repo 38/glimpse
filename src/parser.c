@@ -36,12 +36,17 @@ const char* glimpse_parser_parse(GlimpseParseTree_t* tree, const char* text, Gli
 				GLIMPSE_LOG_FATAL("value parser returns a error status, abort");
 				return NULL;
 			}
+#ifdef STRING_SEPERATOR_SUPPORT
 			int i;
 			for(i = 0; tree->sep_f[i] && next_p[i] && tree->sep_f[i] == next_p[i]; i ++);
 			if(0 == tree->sep_f[i]) /* a seprator */
 				p = next_p + i;
 			else /* something unexcepted */
 				return next_p; /* scan terminated */
+#else
+			if(next_p[0] == tree->sep_f) p = next_p + 1;
+			else return next_p;
+#endif
 			status = NULL;  /* ready to scan next field */
 		}
 	}

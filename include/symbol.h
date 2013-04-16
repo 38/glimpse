@@ -1,5 +1,6 @@
 #ifndef __SYMBOL_H__
 #define __SYMBOL_H__
+#include <future.h>
 #include <retval.h>
 #ifndef GLIMPSE_SYMBOL_MAX_SYMBOL_NUMBER
 #	define GLIMPSE_SYMBOL_MAX_SYMBOL_NUMBER 4099  /*a prime number*/

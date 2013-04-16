@@ -1,5 +1,6 @@
 #ifndef __SRC_PLUGIN_H__
 #define __SRC_PLUGIN_H__
+#include <future.h>
 #include <plugin.h>
 #include <api.h>
 #include <stdint.h>

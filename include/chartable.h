@@ -1,5 +1,6 @@
 #ifndef __CHARTABLE_H__
 #define __CHARTABLE_H__
+#include <future.h>
 #include <retval.h>
 #include <log.h>
 #include <stdint.h>
