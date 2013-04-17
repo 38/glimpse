@@ -3,6 +3,13 @@
 #include <stdio.h>
 int main()
 {
+#if __SIZEOF_POINTER__ == 8
+	long long 
+#elif __SIZEOF_POINTER__ == 4
+	long
+#else
+#	error("wrong pointer size")
+#endif
 	int i;
 	GlimpseCharTable_t* table = glimpse_chartable_new();
 	char data[] = "thisapiabcdefghijklmnopqrstuvw";

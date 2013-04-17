@@ -35,6 +35,7 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	else if(NULL != node->s.child)	/* child table should be desposed */
 	{
 		GlimpseCharHashNode_t* p;
+		/* free the child node recursively */
 		for(p = node->s.child->first; NULL != p; p = p->list)
 			glimpse_tree_trienode_free((GlimpseTrieNode_t*)p->value);
 		glimpse_chartable_free(node->s.child);
@@ -42,9 +43,9 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	free(node);
 }
 #ifdef STRING_SEPERATOR_SUPPORT
-GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv)
+GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv) /* string seperator support */
 #else
-GlimpseParseTree_t* glimpse_tree_new(char sep_f, char sep_kv)
+GlimpseParseTree_t* glimpse_tree_new(char sep_f, char sep_kv) 
 #endif
 {
 #ifdef STRING_SEPERATOR_SUPPORT

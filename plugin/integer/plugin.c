@@ -65,7 +65,7 @@ char* tostring_int(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 	}
 
 	p += snprintf(p, size - (p - buffer), ", heading:%s , ", properties->Leading);
-	p += snprintf(p, size - (p - buffer), "heading_after_sign:%s }", properties->LeadingAfterSign);
+	p += snprintf(p, size - (p - buffer), "heading_after_sign:%s}", properties->LeadingAfterSign);
 	return p;
 }
 int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)

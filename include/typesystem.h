@@ -89,11 +89,11 @@ typedef struct _glimpse_type_pool{
 /* data object */
 #define GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC 0xfc354786u
 typedef struct _glimpse_type_instance_object{
-	uint32_t magic;  /* the magic number indicates data is managed by type system */
-	GlimpseTypePoolNode_t* pool_obj; /* reference to pool object that manage this memory */
 #ifdef THREAD_SAFE
 	pthread_mutex_t mutex;    /* mutex that for thread synchronizing */
 #endif
+	uint32_t magic;  /* the magic number indicates data is managed by type system */
+	GlimpseTypePoolNode_t* pool_obj; /* reference to pool object that manage this memory */
 	char data[0];	/* data section */
 	/* memory for data instance, DO NOT add any defination here */
 } GlimpseTypeInstanceObject_t;

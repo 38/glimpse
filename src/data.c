@@ -69,6 +69,7 @@ ERR:
 }
 void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
 {
+	if(NULL == instance) return;
 	GlimpseDataModel_t* model = instance->model;
 	GlimpseDataMember_t *p;
 	for(p = model->members; p; p = p->next)
