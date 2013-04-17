@@ -3,8 +3,10 @@
 #include <integer/integer.h>
 #include <assert.h>
 #include <time.h>
+#include <thread.h>
 void case0()
 {
+	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)td->properties;
 	td->param.normal.group = "integer";
@@ -19,27 +21,28 @@ void case0()
 	int tmp = -1;
 	const char* ret = NULL;
 	const char* inp;
-	ret = handler->parse(inp = "ffff", &tmp, handler->parse_data);
+	ret = handler->parse(inp = "ffff", &tmp, handler->parse_data, thread_data);
 	assert(tmp == -1);
 	assert(ret == inp);
-	ret = handler->parse("0x10000", &tmp, handler->parse_data);
+	ret = handler->parse("0x10000", &tmp, handler->parse_data, thread_data);
 	assert(tmp ==  65536);
 	assert(ret != NULL);
 	assert(*ret == 0);
 	properties->Leading = NULL;
-	ret = handler->parse("-7cb8642c", &tmp, handler->parse_data);
+	ret = handler->parse("-7cb8642c", &tmp, handler->parse_data, thread_data);
 	assert(tmp == -0x7cb8642c);
 	assert(ret != NULL);
 	assert(*ret == 0);
 	properties->LeadingAfterSign = "0x";
-	ret = handler->parse("0x10000", &tmp, handler->parse_data);
+	ret = handler->parse("0x10000", &tmp, handler->parse_data, thread_data);
 	assert(tmp ==  65536);
 	assert(ret != NULL);
 	assert(*ret == 0);
-	ret = handler->parse("-0x7cb8642c", &tmp, handler->parse_data);
+	ret = handler->parse("-0x7cb8642c", &tmp, handler->parse_data, thread_data);
 	assert(tmp == -0x7cb8642c);
 	assert(ret != NULL);
 	assert(*ret == 0);
+	glimpse_thread_data_free(thread_data);
 }
 char D[] = "0123456789abcdef";
 const char* print(long long *n, int sign, int size, int rep, const char* l, const char* las)
@@ -92,6 +95,7 @@ const char* print(long long *n, int sign, int size, int rep, const char* l, cons
 }
 void random_case()
 {
+	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
 	GlimpseIntegerProperties_t* prop = (GlimpseIntegerProperties_t*)td->properties;
 	td->param.normal.group = "integer";
@@ -103,10 +107,10 @@ void random_case()
 	GlimpseTypeHandler_t *handler = glimpse_typesystem_query(td);
 	if(NULL == handler) return;
 	long long tmp = 0;
-	handler->parse("1", &tmp, handler->parse_data);
+	handler->parse("1", &tmp, handler->parse_data, thread_data);
 	assert(tmp == 1);
 	const char* inp;
-	const char* ret = handler->parse(inp = "3", &tmp, handler->parse_data);
+	const char* ret = handler->parse(inp = "3", &tmp, handler->parse_data, thread_data);
 	if(prop->Representation == GlimpseIntegerBin) assert(inp == ret);
 	else 
 	{
@@ -120,9 +124,10 @@ void random_case()
 		long long expect = (((long long)(rand()&0x7fffffff))<<32)|rand();
 		const char* input = print(&expect, prop->Signed, prop->Size, prop->Representation, prop->Leading, prop->LeadingAfterSign);
 		long long returned = 0;
-		const char* rc = handler->parse(input, &returned, handler->parse_data);
+		const char* rc = handler->parse(input, &returned, handler->parse_data, thread_data);
 		assert(returned == expect);
 	}
+	glimpse_thread_data_free(thread_data);
 }
 int main()
 {

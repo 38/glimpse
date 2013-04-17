@@ -36,6 +36,38 @@ int free_int(void* data, void* userdata)
 	ObjFree(data);
 	return 0;
 }
+char* tostring_int(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
+{
+	if(NULL == handler) return NULL;
+	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)handler->type->properties;
+	char *p = buffer;
+	p += snprintf(p, size - (p - buffer), "Integer{");
+	p += snprintf(p, size - (p - buffer), "size:");
+#define PRINT_ENUM(name) \
+	case name:\
+		p += snprintf(p, size - (p - buffer), "%s", #name);\
+		break
+	switch(properties->Size)
+	{
+		PRINT_ENUM(GlimpseInteger8);
+		PRINT_ENUM(GlimpseInteger16);
+		PRINT_ENUM(GlimpseInteger32);
+		PRINT_ENUM(GlimpseInteger64);
+		PRINT_ENUM(GlimpseIntegerVariant);
+	}
+	p += snprintf(p, size - (p - buffer), ", signed:%s, format:", (properties->Signed?"true":"false") );
+	switch(properties->Representation)
+	{
+		PRINT_ENUM(GlimpseIntegerBin);
+		PRINT_ENUM(GlimpseIntegerOct);
+		PRINT_ENUM(GlimpseIntegerDec);
+		PRINT_ENUM(GlimpseIntegerHex);
+	}
+
+	p += snprintf(p, size - (p - buffer), ", heading:%s , ", properties->Leading);
+	p += snprintf(p, size - (p - buffer), "heading_after_sign:%s }", properties->LeadingAfterSign);
+	return p;
+}
 int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 {
 	if(NULL == type || NULL == handler) return -1;
@@ -47,6 +79,7 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 	handler->free = free_int; 
 	handler->init_data = NULL;
 	handler->init = NULL; 		/* we does not need initialize */
+	handler->tostring = tostring_int;
 	switch(properties->Size)
 	{
 /* Local Macro, undefined after used */

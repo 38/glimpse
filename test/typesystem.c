@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <integer/integer.h>
 #include <vector.h>
+#include <thread.h>
 GlimpseTypeHandler_t* init_handler()
 {
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));
@@ -64,15 +65,17 @@ void case_type_pool()
 void case_vector()
 {
 	int i;
+	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	GlimpseTypeHandler_t *hint = init_handler();
 	GlimpseTypeHandler_t *hvec = vec_handler();
 	void* instance = glimpse_typesystem_typehandler_new_instance(hvec);
-	hvec->parse("0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0x10", instance, hvec->parse_data);
+	hvec->parse("0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0x10", instance, hvec->parse_data, thread_data);
 	for(i = 0; i < ((GlimpseVector_t*)instance)->size; i ++)
 	{
 		int* inst = *(int**)glimpse_vector_get((GlimpseVector_t*)instance , i);
 		assert(*inst == i + (i/10)*6);
 	}
+	glimpse_thread_data_free(thread_data);
 }
 int main()
 {

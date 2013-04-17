@@ -22,7 +22,7 @@ static inline const char* _glimpse_integer_fixlength_parse_header_after_sign(con
 }
 /* Hex Parser */
 #define SIGNED_HEX_PARSER(len) \
-const char* glimpse_integer_fixlength_hex_i##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_hex_i##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -46,7 +46,7 @@ const char* glimpse_integer_fixlength_hex_i##len(const char* str, void* ret, voi
     return str;\
 }
 #define USIGNED_HEX_PARSER(len) \
-const char* glimpse_integer_fixlength_hex_u##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_hex_u##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -67,7 +67,7 @@ const char* glimpse_integer_fixlength_hex_u##len(const char* str, void* ret, voi
 
 /* dec parser */
 #define SIGNED_DEC_PARSER(len) \
-const char* glimpse_integer_fixlength_dec_i##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_dec_i##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -90,7 +90,7 @@ const char* glimpse_integer_fixlength_dec_i##len(const char* str, void* ret, voi
     return str;\
 }
 #define UNSIGNED_DEC_PARSER(len) \
-const char* glimpse_integer_fixlength_dec_u##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_dec_u##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -109,7 +109,7 @@ const char* glimpse_integer_fixlength_dec_u##len(const char* str, void* ret, voi
 
 /* oct parser */
 #define SIGNED_OCT_PARSER(len)\
-const char* glimpse_integer_fixlength_oct_i##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_oct_i##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -132,7 +132,7 @@ const char* glimpse_integer_fixlength_oct_i##len(const char* str, void* ret, voi
     return str;\
 }
 #define UNSIGNED_OCT_PARSER(len)\
-const char* glimpse_integer_fixlength_oct_u##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_oct_u##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -151,7 +151,7 @@ const char* glimpse_integer_fixlength_oct_u##len(const char* str, void* ret, voi
 
 /* Bin parser */
 #define SIGNED_BIN_PARSER(len) \
-const char* glimpse_integer_fixlength_bin_i##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_bin_i##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return str;\
@@ -174,7 +174,7 @@ const char* glimpse_integer_fixlength_bin_i##len(const char* str, void* ret, voi
     return str;\
 }
 #define UNSIGNED_BIN_PARSER(len) \
-const char* glimpse_integer_fixlength_bin_u##len(const char* str, void* ret, void* data)\
+const char* glimpse_integer_fixlength_bin_u##len(const char* str, void* ret, void* data, void* thread_data)\
 {\
 	const char* tmp;\
 	if(NULL == (tmp = _glimpse_integer_fixlength_parse_header(str, (GlimpseIntegerProperties_t*) data))) return NULL;\

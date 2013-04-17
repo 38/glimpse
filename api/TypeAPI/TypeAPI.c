@@ -10,6 +10,11 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.ImportSymbol = glimpse_symbol_importsymbol;
 	meta->api_functions.DataObjAlloc = glimpse_typesystem_instance_object_alloc;
 	meta->api_functions.DataObjFree  = glimpse_typesystem_instance_object_free;
+#ifdef THREAD_SAFE
+	meta->api_functions.DataObjLock = glimpse_typesystem_instance_object_lock;
+	meta->api_functions.DataObjUnlock = glimpse_typesystem_instance_object_unlock;
+	meta->api_functions.DataObjTrylock = glimpse_typesystem_instance_object_trylock;
+#endif
 	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
 	return 0;
 }

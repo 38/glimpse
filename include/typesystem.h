@@ -6,6 +6,9 @@
 #include <def.h>
 #include <data.h>
 #include <tree.h>
+#ifdef THREAD_SAFE
+#include <pthread.h>
+#endif
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
@@ -68,10 +71,17 @@ typedef struct _glimpse_type_pool_node{
 	
 	uint8_t occupied:1;  /* is the memory currently in use */
 
+#ifdef THREAD_SAFE
+	pthread_mutex_t mutex;
+#endif
+
 } GlimpseTypePoolNode_t;
 
 /* memery pool */
 typedef struct _glimpse_type_pool{
+#ifdef THREAD_SAFE
+	pthread_mutex_t mutex;
+#endif
 	GlimpseTypePoolNode_t* occupied_list;	/* list of occupied memory */	
 	GlimpseTypePoolNode_t* available_list;   /* list of available memory */
 } GlimpseTypePool_t;
@@ -81,6 +91,9 @@ typedef struct _glimpse_type_pool{
 typedef struct _glimpse_type_instance_object{
 	uint32_t magic;  /* the magic number indicates data is managed by type system */
 	GlimpseTypePoolNode_t* pool_obj; /* reference to pool object that manage this memory */
+#ifdef THREAD_SAFE
+	pthread_mutex_t mutex;    /* mutex that for thread synchronizing */
+#endif
 	char data[0];	/* data section */
 	/* memory for data instance, DO NOT add any defination here */
 } GlimpseTypeInstanceObject_t;
@@ -109,7 +122,7 @@ typedef struct _glimpse_type_handler{
 	GlimpseTypeVectorParserParam_t* vector_parser_param[0];   /* vector reuse the parse_data as the element handler */
 	GlimpseParseTree_t* sublog_parser_param[0];	/*reuse for sublog */
 	void* parse_data; /* pass the additional data used by parse function */
-	const char* (*parse)(const char* text, void* result, void* user_data); /* function for parse data from text */
+	const char* (*parse)(const char* text, void* result, void* user_data, void* thread_data); /* function for parse data from text */
 	
 	/* alloc memory for data storage */
 	/* NOTICE: any initialization should not be performed in this function
@@ -131,6 +144,9 @@ typedef struct _glimpse_type_handler{
 	/* finalize data after use */
 	void* finalize_data;
 	int (*finalize)(void* data, void* user_data);
+
+	/* human readable type, for debug purpose */
+	char* (*tostring)(struct _glimpse_type_handler* type, char* buffer, size_t size);
 	
 	/* Add some new interface here to extend the framework */
 
@@ -160,6 +176,7 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler); 
 void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
 void glimpse_typesystem_typehandler_free_instance(void* instance);
+char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size);
 
 /* instance object */
 void* glimpse_typesystem_instance_object_alloc(size_t size);
@@ -167,6 +184,11 @@ void glimpse_typesystem_instance_object_free(void* data);
 int glimpse_typesystem_instance_object_check(void* data); /* check if the data is a instance object */
 GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data); /* get pool node which manage the memory */
 int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj); /*alias data with pool_obj*/
+#ifdef THREAD_SAFE
+int glimpse_typesystem_instance_object_lock(void* data);
+int glimpse_typesystem_instance_object_unlock(void* data);
+int glimpse_typesystem_instance_object_trylock(void* data);
+#endif
 
 /* type system */
 GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type);  

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <vector.h>
 #include <typeflag.h>
+#include <stdio.h>
 GlimpseTypeGroup_t *_glimpse_typesystem_typegroup_list[TYPEDESC_MAX_TYPEGROUPS];
 int _glimpse_typesystem_typegroup_count = 0;
 GlimpseVector_t* _glimpse_typesystem_known_handler;
@@ -25,12 +26,7 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 {
 	if(NULL == typedesc) return;
 	/* because all types are record in the _glimpse_typesystem_known_handler, so 
-	 * we does not need to free them recursively
-	 */
-	/*if(typedesc->flags & GLIMPSE_TYPEFLAG_VECTOR)
-	{
-		glimpse_typesystem_typedesc_free(typedesc->param.vector.basetype); 
-	}*/
+	   we does not need to free them recursively */
 	free(typedesc);
 }
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
@@ -95,6 +91,9 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 		if(_glimpse_typesystem_typedesc_equal(known_handler->type, type)) 
 		{
 			glimpse_typesystem_typedesc_free(type);
+			char buffer[1024];
+			if(glimpse_typesystem_typehandler_tostring(known_handler, buffer, sizeof(buffer)))
+				GLIMPSE_LOG_DEBUG("queried an known handler: %s", buffer);
 			return known_handler;
 		}
 	}
@@ -124,6 +123,7 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 			handler.free = glimpse_typeflag_vector_free;
 			handler.alloc = glimpse_typeflag_vector_alloc;
 			handler.finalize = glimpse_typeflag_vector_finalize;
+			handler.tostring = glimpse_typeflag_vector_tostring;
 			break;
 ERR_VEC:
 			if(handler.vector_parser_param[0]) free(handler.vector_parser_param[0]);
@@ -141,6 +141,7 @@ ERR_VEC:
 			handler.free  = glimpse_typeflag_sublog_free;
 			handler.init  = glimpse_typeflag_sublog_init;
 			handler.finalize = glimpse_typeflag_sublog_finalize;
+			handler.tostring = glimpse_typeflag_sublog_tostring;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 			//TODO: handler for map 
@@ -150,23 +151,34 @@ ERR_VEC:
 				if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, type->param.normal.group) == 0)
 				{
 					int ret = _glimpse_typesystem_typegroup_list[i]->resolve(type, &handler);
-					if(ESUCCESS != ret) 
-					{
-						glimpse_typesystem_typedesc_free(type);
-						return NULL;
-					}
-					break;
+					if(ESUCCESS == ret) break;
 				}
-			if(i == _glimpse_typesystem_typegroup_count) return NULL;
+			if(i == _glimpse_typesystem_typegroup_count) 
+			{
+				glimpse_typesystem_typedesc_free(type);
+				return NULL;
+			}
 			break;
 		default:
 			GLIMPSE_LOG_ERROR("invalid builtin type %d\n", type->builtin_type);
 	}
-
+	
 	int rc = glimpse_vector_push(_glimpse_typesystem_known_handler, &handler);
 	if(ESUCCESS != rc) return NULL;
+	/* print log */
+	char buffer[1024];
+	if(glimpse_typesystem_typehandler_tostring(&handler, buffer, sizeof(buffer)))
+		GLIMPSE_LOG_DEBUG("registed new type handler: %s", buffer);
+#ifdef THREAD_SAFE
+	GlimpseTypeHandler_t* ret = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler, 
+																		  _glimpse_typesystem_known_handler->size - 1);
+	if(NULL == ret) return NULL;
+	pthread_mutex_init(&ret->pool.mutex, NULL);
+	return ret;
+#else
 	return (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler, 
 			_glimpse_typesystem_known_handler->size - 1);
+#endif
 }
 
 /*GlimpseTypeHandler_t* glimpse_typesystem_typehandler_new()
@@ -194,7 +206,10 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 		if(handler->free) handler->free(p->instance, handler->free_data);
 		free(p);
 		p = next;
-	}	
+	}
+#ifdef THREAD_SAFE
+	pthread_mutex_destroy(&handler->pool.mutex);
+#endif
 	//for vector we does not need to free all element, because it will be done with other handler
 	//because all handler are allocated in _glimpse_typesystem_known_handler, we does not need free them
 }
@@ -202,6 +217,9 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 {
 	GlimpseTypePoolNode_t* ret;
 	if(NULL == handler) return NULL;
+#ifdef THREAD_SAFE
+	pthread_mutex_lock(&handler->pool.mutex);  /* lock the pool */
+#endif
 	if(handler->pool.available_list) /* if there's some available data instance */
 	{
 		ret = handler->pool.available_list;
@@ -219,6 +237,7 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 		ret->next = NULL;
 		ret->instance = handler->alloc(handler->alloc_data);
 		ret->occupied = 1;
+		pthread_mutex_init(&ret->mutex, NULL);
 		if(NULL == ret->instance) 
 		{
 			free(ret);
@@ -245,6 +264,9 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 	ret->prev = NULL;
 	if(ret->handler->pool.occupied_list) ret->handler->pool.occupied_list->prev = ret;
 	ret->handler->pool.occupied_list = ret;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&handler->pool.mutex);
+#endif
 	return ret->instance;
 }
 void glimpse_typesystem_typehandler_free_instance(void* instance)
@@ -253,8 +275,14 @@ void glimpse_typesystem_typehandler_free_instance(void* instance)
 	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
 	if(NULL == node) return;
 	if(!node->occupied) return;  /* if it's not in use */
+#ifdef THREAD_SAFE
+	pthread_mutex_lock(&node->handler->pool.mutex);
+#endif
 	if(node->handler->finalize) node->handler->finalize(instance, node->handler->finalize_data);
 	node->occupied = 0;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&node->mutex);
+#endif
 	/* remove from occupied list */
 	if(NULL == node->prev) /*first node*/
 	{
@@ -274,8 +302,20 @@ void glimpse_typesystem_typehandler_free_instance(void* instance)
 	node->prev = NULL;
 	node->next = node->handler->pool.available_list;
 	node->handler->pool.available_list = node;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&node->handler->pool.mutex);
+#endif
 }
-
+char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size)
+{
+	if(NULL == handler || NULL == buffer) return NULL;
+	char* ret = buffer;;
+	if(handler->tostring) 
+		ret = handler->tostring(handler, ret, size);
+	else
+		ret += snprintf(ret, size, "Type{group:%s}", handler->type->param.normal.group);
+	return ret;
+}
 int glimpse_typesystem_init()
 {
 	_glimpse_typesystem_known_handler = glimpse_vector_new(sizeof(GlimpseTypeHandler_t));
@@ -300,7 +340,7 @@ int glimpse_typesystem_cleanup()
 }
 void* glimpse_typesystem_instance_object_alloc(size_t size)
 {
-	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)malloc(size + sizeof(GlimpseTypeInstanceObject_t));
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)malloc(size + sizeof(GlimpseTypeInstanceObject_t)); /* malloc is threadsafe */
 	if(NULL == ret) return NULL;
 	ret->magic = GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC;
 	return ret->data;
@@ -310,7 +350,7 @@ void glimpse_typesystem_instance_object_free(void* data)
 	if(NULL == data) return;
 	if(!glimpse_typesystem_instance_object_check(data)) GLIMPSE_LOG_WARNING("memory at <0x%x> is not a instance object");
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
-	free(ret);
+	free(ret);  /* free is threadsafe */
 }
 int glimpse_typesystem_instance_object_check(void* data)
 {
@@ -333,3 +373,38 @@ GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data)
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	return ret->pool_obj;
 }
+#ifdef THREAD_SAFE
+int glimpse_typesystem_instance_object_lock(void* data)
+{
+	if(NULL == data) return -1;
+	if(!glimpse_typesystem_instance_object_check(data)) 
+	{
+		GLIMPSE_LOG_WARNING("memory at <0x%x> is not a instance object");
+		return -1;
+	}
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	return pthread_mutex_lock(&ret->mutex);
+}
+int glimpse_typesystem_instance_object_unlock(void* data)
+{
+	if(NULL == data) return -1;
+	if(!glimpse_typesystem_instance_object_check(data))
+	{
+		GLIMPSE_LOG_WARNING("memory at <0x%x> is not a instance object");
+		return -1;
+	}
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	return pthread_mutex_unlock(&ret->mutex);
+}
+int glimpse_typesystem_instance_object_trylock(void* data)
+{
+	if(NULL == data) return -1;
+	if(!glimpse_typesystem_instance_object_check(data))
+	{
+		GLIMPSE_LOG_WARNING("memory at <0x%x> is not a instance object");
+		return -1;
+	}
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	return pthread_mutex_trylock(&ret->mutex);
+}
+#endif

@@ -12,6 +12,11 @@ GlimpseAPIData(TypeAPI)
 		void* (*ImportSymbol)(const char* symbol);
 		void* (*DataObjAlloc)(size_t size);
 		void  (*DataObjFree)(void* mem);
+#ifdef THREAD_SAFE
+		int   (*DataObjLock)(void* data);
+		int   (*DataObjUnlock)(void* data);
+		int   (*DataObjTrylock)(void* data);
+#endif
 	GlimpseAPIFunctionsEnd
 	//called by API
 	GlimpsePluginFunctions
@@ -28,6 +33,12 @@ void Glimpse_TypeAPI_init(void);
 #define ExternalCall(func, args...) (_glimpse_external_##func(##args))
 #define ObjAlloc(size) GlimpseAPICall(TypeAPI, DataObjAlloc, size)
 #define ObjFree(mem) GlimpseAPICall(TypeAPI, DataObjFree, mem)
+
+#ifdef THREAD_SAFE
+#define DataLock(data) GlimpseAPICall(TypeAPI, DataObjLock, data)
+#define DataUnlock(data) GlimpseAPICall(TypeAPI, DataObjUnlock, data)
+#define DataTrylock(data) GlimpseAPICall(TypeAPI, DataObjTrylock, data)
+#endif
 
 #define PLUGIN_LOG(level,fmt,arg...) do{\
 	WriteLog(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\

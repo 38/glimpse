@@ -3,6 +3,10 @@
 #include <vector.h>
 #include <log.h>
 #include <data.h>
+#include <tree.h>
+#include <thread.h>
+#include <stdio.h>
+#include <stack.h>
 void* glimpse_typeflag_vector_alloc(void* userdata)
 {
 	return glimpse_vector_new(sizeof(void*));
@@ -31,12 +35,12 @@ int glimpse_typeflag_vector_free(void* data, void* userdata)
 	return 0;
 }
 /* TODO: stop-set problem described in parser.c also affects this parser */
-const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data)
+const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
 	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
 	GlimpseTypeHandler_t* handler = param->basetype_handler;
-	if(handler->parse == NULL)
-		return text;
+	GlimpseThreadData_t* thread = (GlimpseThreadData_t*) thread_data;
+	if(handler->parse == NULL || thread == NULL) return text;
 	const char* next;
 	void* instance;
 	while(*text)
@@ -46,12 +50,15 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		if(NULL == instance)
 		{
 			GLIMPSE_LOG_ERROR("can not allocate memory");
+			glimpse_stack_print(&thread->stack);
 			return NULL;
 		}
-		const char* next = handler->parse(text, instance, handler->parse_data); /*TODO: modification needed for handler stack here */
+		const char* next = glimpse_stack_get_parser(&thread->stack, handler)(text, instance, handler->parse_data, thread_data); /* thread support */
+		glimpse_stack_pop(&thread->stack); /* cleanup the stack */
 		if(NULL == next)
 		{
 			GLIMPSE_LOG_ERROR("failed to parse text");
+			glimpse_stack_print(&thread->stack);
 			glimpse_typesystem_typehandler_free_instance(instance);
 			return text;
 		}
@@ -59,6 +66,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		if(ESUCCESS != rc)
 		{
 			GLIMPSE_LOG_WARNING("failed to insert to vector");
+			glimpse_stack_print(&thread->stack);
 			glimpse_typesystem_typehandler_free_instance(instance);
 		}
 		text = next;
@@ -73,9 +81,26 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		else return text;
 #else
 		if(text[0] && text[0] == param->sep) text ++;
-		else return text;
+		else return text;  /* the handler stack already checked */
 #endif
 	}
+}
+char* glimpse_typeflag_vector_tostring(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
+{
+	char* p = buffer;
+	p += snprintf(p, size - (p - buffer), "Vector{seperator: "
+#ifdef STRING_SEPERATOR_SUPPORT
+			"%s"
+#else 
+			"'%c'"
+#endif
+			", basetype:", 
+			handler->vector_parser_param[0]->sep);
+	if(handler->vector_parser_param[0]->basetype_handler)
+		p = glimpse_typesystem_typehandler_tostring(handler->vector_parser_param[0]->basetype_handler, p, size - (p - buffer));
+	if(NULL == p) return NULL;
+	p += snprintf(p, size - (p - buffer), "}");
+	return p;
 }
 void* glimpse_typeflag_sublog_alloc(void* userdata)
 {
@@ -95,7 +120,51 @@ int glimpse_typeflag_sublog_finalize(void* data, void* userdata)
 	glimpse_data_instance_finalize((GlimpseDataInstance_t*)data);
 	return 0;
 }
-const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* user_data)
+const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
-	//TODO: parse the log 
+	GlimpseParseTree_t* tree = (GlimpseParseTree_t*)user_data;
+	GlimpseThreadData_t* thread = (GlimpseThreadData_t*)thread_data;
+	GlimpseDataInstance_t* storage = (GlimpseDataInstance_t*) result;
+	if(NULL == tree || NULL == text || NULL == storage) return NULL;
+	GlimpseParserStatus_t status = NULL;
+	const char* p;
+	for(p = text; p && *p;)
+	{
+		if(NULL == status) status = glimpse_tree_scan_start(tree);
+		if(NULL == status)
+		{
+			GLIMPSE_LOG_FATAL("can not initialize scanner, abort");
+			return NULL;
+		}
+		status = glimpse_tree_scan(status, *p);
+		if(status->term) /* got a key */
+		{
+			int id = status->s.terminus.idx;
+			GlimpseTypeHandler_t* handler = status->s.terminus.handler;
+			//const char* next_p = handler->parse(p, storage->data[id], handler->parse_data); /* parse the value */
+			const char* next_p = glimpse_stack_get_parser(&thread->stack, handler)(p, storage->data[id], handler->parse_data, thread_data);
+			if(NULL == next_p)
+			{
+				GLIMPSE_LOG_FATAL("value parser returns a error status, abort");
+				return NULL;
+			}
+#ifdef STRING_SEPERATOR_SUPPORT
+			int i;
+			for(i = 0; tree->sep_f[i] && next_p[i] && tree->sep_f[i] == next_p[i]; i ++);
+			if(0 == tree->sep_f[i]) /* a seprator */
+				p = next_p + i;
+			else /* something unexcepted */
+				return next_p; /* scan terminated */
+#else
+			if(next_p[0] == tree->sep_f) p = next_p + 1;
+			else return next_p;  /* handler stack checked */
+#endif
+			status = NULL;  /* ready to scan next field */
+		}
+	}
+	return p;
+}
+char* glimpse_typeflag_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size)
+{
+	//TODO
 }
