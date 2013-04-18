@@ -136,35 +136,87 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 			GLIMPSE_LOG_FATAL("can not initialize scanner, abort");
 			return NULL;
 		}
-		status = glimpse_tree_scan(status, *p);
-		if(status->term) /* got a key */
+		status = glimpse_tree_scan(status, *(p++));
+		if(status)
 		{
-			int id = status->s.terminus.idx;
-			GlimpseTypeHandler_t* handler = status->s.terminus.handler;
-			//const char* next_p = handler->parse(p, storage->data[id], handler->parse_data); /* parse the value */
-			const char* next_p = glimpse_stack_get_parser(&thread->stack, handler)(p, storage->data[id], handler->parse_data, thread_data);
-			if(NULL == next_p)
+			if(status->term) /* got a key */
 			{
-				GLIMPSE_LOG_FATAL("value parser returns a error status, abort");
-				return NULL;
-			}
+				int id = status->s.terminus.idx;
+				GlimpseTypeHandler_t* handler = status->s.terminus.handler;
+				//const char* next_p = handler->parse(p, storage->data[id], handler->parse_data); /* parse the value */
+				const char* next_p = glimpse_stack_get_parser(&thread->stack, handler)(p, storage->data[id], handler->parse_data, thread_data);
+				if(NULL == next_p)
+				{
+					GLIMPSE_LOG_FATAL("value parser returns a error status, abort");
+					return NULL;
+				}
 #ifdef STRING_SEPERATOR_SUPPORT
-			int i;
-			for(i = 0; tree->sep_f[i] && next_p[i] && tree->sep_f[i] == next_p[i]; i ++);
-			if(0 == tree->sep_f[i]) /* a seprator */
-				p = next_p + i;
-			else /* something unexcepted */
-				return next_p; /* scan terminated */
+				int i;
+				for(i = 0; tree->sep_f[i] && next_p[i] && tree->sep_f[i] == next_p[i]; i ++);
+				if(0 == tree->sep_f[i]) /* a seprator */
+					p = next_p + i;
+				else /* something unexcepted */
+					return next_p; /* scan terminated */
 #else
-			if(next_p[0] == tree->sep_f) p = next_p + 1;
-			else return next_p;  /* handler stack checked */
+				if(next_p[0] == tree->sep_f) p = next_p + 1;
+				else return next_p;  /* handler stack checked */
 #endif
-			status = NULL;  /* ready to scan next field */
-		}
+				status = NULL;  /* ready to scan next field */
+			}
+		} 
+		/* 
+		 * else the key does not match anything, so rematch 
+		 */
 	}
 	return p;
 }
+static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int level, char* buffer, size_t size)
+{
+	if(node == NULL) return buffer + snprintf(buffer, size, "(nullnode),");
+	char* p = buffer;
+	static char key[1024];
+	if(node->term)
+	{
+		int s = 1024;
+		char *q;
+		if(s > level) s = level;
+		key[s] = 0;
+		if(s) key[s-1] = 0;
+		p += snprintf(p, size - (p - buffer), "%s:", key);
+		if(node->s.terminus.handler)
+			 q = glimpse_typesystem_typehandler_tostring(node->s.terminus.handler, p, size - (p - buffer));
+		if(NULL == q) 
+			p += snprintf(p, size - (p - buffer), "(undefined)");
+		else
+			p = q;
+		p += snprintf(p, size - (p - buffer), ",");
+		return p;
+	}
+	else
+	{
+		GlimpseCharHashNode_t* n;
+		int s = 1024;
+		if(s > level) s = level;
+		for(n = node->s.child->first; n; n = n->list)
+		{
+			key[s] = n->key;
+			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer));
+			if(NULL == q) 
+				p += snprintf(p, size - (p - buffer), "(undefined),");
+			else
+				p = q;
+		}
+		return p;
+	}
+}
 char* glimpse_typeflag_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size)
 {
-	//TODO
+	if(NULL == type || NULL == buffer) return NULL;
+	char *p = buffer;
+	p += snprintf(buffer, size - (p - buffer), "Log{");
+	p = _glimpse_typeflag_sublog_tostring_imp(type->type->param.sublog.tree->root, 0, p, size - (p - buffer));
+	p += snprintf(p, size - (p - buffer), "sep_kv:'%c',sep_f:'%c'}", 
+				  type->type->param.sublog.tree->sep_kv,
+				  type->type->param.sublog.tree->sep_f);
+	return p;
 }

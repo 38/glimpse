@@ -3,7 +3,8 @@
 #include <string.h>
 #include <malloc.h>
 #include <thread.h>
-GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
+#include <data.h>
+static GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
 const char* glimpse_scanner_parse(const char* text)    /* parse a log the upper most function, it will create the threaddata */
 {
 	if(NULL == text || NULL == _glimpse_scanner_instance.default_handler) 
@@ -13,9 +14,11 @@ const char* glimpse_scanner_parse(const char* text)    /* parse a log the upper 
 		return NULL;
 	GlimpseTypeHandler_t* handler = _glimpse_scanner_instance.default_handler;	
 	void* data_instance = glimpse_typesystem_typehandler_new_instance(handler);
-	// TODO: callback before_parse
+	if(_glimpse_scanner_instance.before_scan) text = _glimpse_scanner_instance.before_scan(text, 
+			_glimpse_scanner_instance.before_scan_data);
 	const char* ret = glimpse_stack_get_parser(&thread_data->stack, handler)(text, data_instance, handler->parse_data, thread_data);
-	// TODO: callback after_parse
+	if(_glimpse_scanner_instance.after_scan) _glimpse_scanner_instance.after_scan(((GlimpseDataInstance_t*)data_instance)->data,
+			_glimpse_scanner_instance.after_scan_data);
 	glimpse_typesystem_typehandler_free_instance(data_instance);
 	glimpse_thread_data_free(thread_data);
 	return ret;
@@ -45,7 +48,10 @@ GlimpseParseTree_t* glimpse_scanner_register_tree(const char* name, char sep_f, 
 		return NULL;
 	}
 	_glimpse_scanner_instance.name[idx] = name;
-	return _glimpse_scanner_instance.log[idx];
+	GlimpseParseTree_t* ret = _glimpse_scanner_instance.log[idx];
+	if(NULL == ret) return NULL;
+	GLIMPSE_LOG_DEBUG("log tree `%s' has been created successfully", name);
+	return ret;
 }
 int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want to parse */
 {
@@ -64,6 +70,7 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 		GLIMPSE_LOG_ERROR("failed to query the type system");
 		return EUNKNOWN;
 	}
+	GLIMPSE_LOG_DEBUG("defualt log parser has been selected");
 	return ESUCCESS;
 }
 
@@ -87,4 +94,13 @@ void glimpse_scanner_cleanup()
 	}
 	/* handler will be freed during the cleanup process of type system */
 }
-
+void glimpse_scanner_set_before_scan_callback(typeof(((GlimpseScanner_t*)NULL)->before_scan) callback, void* userdata)
+{
+	_glimpse_scanner_instance.before_scan = callback;
+	_glimpse_scanner_instance.before_scan_data = userdata;
+}
+void glimpse_scanner_set_after_scan_callback(typeof(((GlimpseScanner_t*)NULL)->after_scan) callback, void* userdata)
+{
+	_glimpse_scanner_instance.after_scan = callback;
+	_glimpse_scanner_instance.after_scan_data = userdata;
+}

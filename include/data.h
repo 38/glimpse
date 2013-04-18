@@ -22,6 +22,8 @@ typedef struct _glimpse_data_instance_t{
 	/* memory for data table */
 } GlimpseDataInstance_t;
 
+typedef int GlimpseDataOffset_t;   /* indicates the offset of data within a data instance */
+
 GlimpseDataModel_t* glimpse_data_model_new();
 void glimpse_data_model_free(GlimpseDataModel_t* model);
 
@@ -32,4 +34,12 @@ void glimpse_data_instance_free(GlimpseDataInstance_t* instance);
 int glimpse_data_instance_init(GlimpseDataInstance_t* instance);
 void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance);
 #define GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model) (model->members?model->members->idx+1:0)
+
+static inline void* glimpse_data_instance_get(GlimpseDataInstance_t* instance, GlimpseDataOffset_t offset)
+{
+	if(offset < 0) return NULL;
+	if(NULL == instance) return NULL;
+	if(GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(instance->model) <= offset) return NULL;
+	return instance->data[offset];
+}
 #endif

@@ -79,6 +79,8 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 	handler->free = free_int; 
 	handler->init_data = NULL;
 	handler->init = NULL; 		/* we does not need initialize */
+	handler->finalize_data = NULL;
+	handler->finalize = NULL;
 	handler->tostring = tostring_int;
 	switch(properties->Size)
 	{

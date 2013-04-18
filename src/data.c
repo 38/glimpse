@@ -31,7 +31,7 @@ int glimpse_data_model_insert(GlimpseDataModel_t* model, GlimpseTypeHandler_t* t
 	else member->idx = model->members->idx + 1;
 	member->next = model->members;
 	model->members = member;
-	return ESUCCESS;
+	return member->idx;
 }
 
 GlimpseDataInstance_t* glimpse_data_instance_new(GlimpseDataModel_t* model)
@@ -62,6 +62,7 @@ int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
 		instance->data[p->idx] = glimpse_typesystem_typehandler_new_instance(p->handler);
 		if(NULL == instance->data[p->idx]) goto ERR;
 	}
+	return ESUCCESS;
 ERR:
 	for(q = model->members; q && q != p; q = q->next)
 		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);

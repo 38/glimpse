@@ -121,6 +121,7 @@ typedef struct _glimpse_type_handler{
 	/* the parse function process text into specified data type, the procudt store in result */
 	GlimpseTypeVectorParserParam_t* vector_parser_param[0];   /* vector reuse the parse_data as the element handler */
 	GlimpseParseTree_t* sublog_parser_param[0];	/*reuse for sublog */
+	/* DO NOT add any defination here */
 	void* parse_data; /* pass the additional data used by parse function */
 	const char* (*parse)(const char* text, void* result, void* user_data, void* thread_data); /* function for parse data from text */
 	
@@ -163,6 +164,7 @@ typedef struct _glimpse_type_group{
 
 /* type descriptor manipulation */
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties);
+GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type);
 void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 #ifndef __TYPESYSTEM_C__
 	__attribute__((warning("this function may cause problem if typedesc has been already queried")))

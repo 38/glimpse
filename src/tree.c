@@ -5,8 +5,8 @@ GlimpseTrieNode_t* glimpse_tree_trienode_new(int terminus)
 {
 	GlimpseTrieNode_t* ret = (GlimpseTrieNode_t*)malloc(sizeof(GlimpseTrieNode_t));
 	if(NULL == ret) return NULL;
-	ret->term = terminus;
 	memset(ret, 0, sizeof(GlimpseTrieNode_t));
+	ret->term = terminus;
 	if(!terminus)
 	{
 		/* allocate chartable for child */
@@ -226,7 +226,33 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 	}
 	cur->s.terminus.handler = glimpse_typesystem_query(type);
 	if(NULL == cur->s.terminus.handler) return EUNKNOWN;
-	glimpse_data_model_insert(tree->model, cur->s.terminus.handler);
+	int rc;
+	rc = cur->s.terminus.idx = glimpse_data_model_insert(tree->model, cur->s.terminus.handler);
+	if(rc < 0) return rc;
 	return ESUCCESS;
 }
-
+GlimpseDataOffset_t glimpse_tree_query(GlimpseParseTree_t* tree, const char* key)
+{
+	if(NULL == tree || NULL == key) return;
+	GlimpseTrieNode_t* node;
+	for(node = tree->root; node && !node->term && *key; key++)
+	{
+		uint8_t val = (uint8_t)*key;
+		if(node->s.child) node = (GlimpseTrieNode_t*)glimpse_chartable_find(node->s.child, val);
+		else node = NULL;
+	}
+	if(NULL == node) 
+		return -1;
+	if(node->term) /* node->term should not be true, the reason described above */
+		return -1;
+	/* here, *key must be 0 */
+#ifdef STRING_SEPERATOR_SUPPORT
+	/* TODO */
+#else
+	if(node->s.child) 
+		node = (GlimpseTrieNode_t*)glimpse_chartable_find(node->s.child, (uint8_t)tree->sep_kv);
+	else node = NULL;
+#endif
+	if(NULL == node || !node->term) return -1;
+	return node->s.terminus.idx; 
+}

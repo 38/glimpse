@@ -12,14 +12,14 @@
 		GLIMPSE_LOG_WARNING("`" #type "::" #last "' is not the last member, this may cause problem");\
 		ret = 1;\
 	}else\
-		GLIMPSE_LOG_DEBUG("`" #type "' seems well formed");\
+		GLIMPSE_LOG_DEBUG("`" #type "::" #last "' is the last member, it seems well-fomed");\
 }while(0)
 #define _GLIMPSE_CHECK_CONT(type, f1, f2) do{\
 	if(GLIMPSE_OFFSET_OF(type, f2) - GLIMPSE_OFFSET_OF(type, f1) != sizeof(((type*)NULL)->f1)){\
 		GLIMPSE_LOG_WARNING("`" #type "::" #f1 "' and `" #type "::" #f2 "' occupies discontinious memroy address");\
 		ret = 1;\
 	}else\
-		GLIMPSE_LOG_DEBUG("`" #type "' seems well formed");\
+		GLIMPSE_LOG_WARNING("`" #type "::" #f1 "' and `" #type "::" #f2 "' occupies continious memroy address, it seems well-formed");\
 }while(0)
 static inline int _glimpse_check_types()
 {
@@ -29,23 +29,29 @@ static inline int _glimpse_check_types()
 	_GLIMPSE_CHECK_LAST(GlimpseTypeInstanceObject_t, data);
 	_GLIMPSE_CHECK_CONT(GlimpseTypeInstanceObject_t, pool_obj, data);
 	_GLIMPSE_CHECK_LAST(GlimpseDataInstance_t, data);
+	_GLIMPSE_CHECK_CONT(GlimpseTypeHandler_t, vector_parser_param, parse_data);
+	_GLIMPSE_CHECK_CONT(GlimpseTypeHandler_t, sublog_parser_param, parse_data);
 	return ret;
 }
 #undef _GLIMPSE_CHECK_CONT
 #undef _GLIMPSE_CHECK_LAST
 /* call the init function */
-void glimpse_init()
+int glimpse_init()
 {
 	if(_glimpse_check_types())
 	{
 		GLIMPSE_LOG_FATAL("malformed structures, try to correct the issue above and recompile glimpse");
-		abort();
+		return EUNKNOWN;
 	}
+	else
+		GLIMPSE_LOG_NOTICE("type check passed, no error found");
 	glimpse_typesystem_init();
+	glimpse_scanner_init();
 }
 /* call the cleanup function */
 void glimpse_cleanup()
 {
+	glimpse_scanner_cleanup();
 	glimpse_typesystem_cleanup();
 	glimpse_symbol_cleaup();
 	glimpse_pluginloader_cleanup();

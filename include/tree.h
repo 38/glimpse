@@ -36,6 +36,7 @@ typedef struct _glimpse_parse_tree{
 	GlimpseTrieNode_t* root;
 	GlimpseDataModel_t* model; /* data model for log */
 } GlimpseParseTree_t;
+
 /* Tree manipulation */
 #ifdef STRING_SEPERATOR_SUPPORT
 GlimpseParseTree_t* glimpse_tree_new(const char* sep_f, const char* sep_kv);  /* future */
@@ -49,6 +50,7 @@ int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, const char* f, const cha
 int glimpse_tree_set_sperator(GlimpseParseTree_t* tree, char f, char kv);
 #endif /*STRING_SEPERATOR_SUPPORT*/
 int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseTypeDesc_t* type);
+int  glimpse_tree_query(GlimpseParseTree_t* tree, const char* key); /* Ugly name for return type */
 /* Operation */
 typedef GlimpseTrieNode_t* GlimpseParserStatus_t;
 static inline GlimpseParserStatus_t glimpse_tree_scan_start(GlimpseParseTree_t* tree)

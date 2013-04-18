@@ -8,9 +8,9 @@
 #include <vector.h>
 #include <typeflag.h>
 #include <stdio.h>
-GlimpseTypeGroup_t *_glimpse_typesystem_typegroup_list[TYPEDESC_MAX_TYPEGROUPS];
-int _glimpse_typesystem_typegroup_count = 0;
-GlimpseVector_t* _glimpse_typesystem_known_handler;
+static GlimpseTypeGroup_t *_glimpse_typesystem_typegroup_list[TYPEDESC_MAX_TYPEGROUPS];
+static int _glimpse_typesystem_typegroup_count = 0;
+static GlimpseVector_t* _glimpse_typesystem_known_handler;
 
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties)
 {
@@ -28,6 +28,15 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 	/* because all types are record in the _glimpse_typesystem_known_handler, so 
 	   we does not need to free them recursively */
 	free(typedesc);
+}
+GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type)
+{
+	if(NULL == type) return NULL;
+	size_t size = sizeof(GlimpseTypeDesc_t) + type->properties_size;
+	GlimpseTypeDesc_t* ret = (GlimpseTypeDesc_t*)malloc(size);
+	if(NULL == ret) return NULL;
+	memcpy(ret, type, size);
+	return ret;
 }
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 {
