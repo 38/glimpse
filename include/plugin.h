@@ -16,7 +16,15 @@ typedef struct _glimpse_plugin_metadata_t{
 	/* DO NOT add any defination here */
 }GlimpsePluginMetaData_t;
 /* Indicates the begining of of the Glimpse Plugin Metadata Section */
+#ifdef __cplusplus
+#	define GLIMPSE_META_HEADER extern "C" {
+#	define GLIMPSE_META_FOOTER }
+#else
+#	define GLIMPSE_META_HEADER
+#	define GLIMPSE_META_FOOTER
+#endif 
 #define GlimpsePluginMetaData(APIName) GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
+GLIMPSE_META_HEADER\
 GlimpsePluginMetaData_t* GetMetaData(void){\
 	if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
 	GlimpsePluginMetaData_t* ret = \
@@ -25,7 +33,7 @@ GlimpsePluginMetaData_t* GetMetaData(void){\
 	if(NULL == ret) return NULL;\
 	ret->APIVersion = #APIName;
 /* Indicates the end of Metadata Section */
-#define GlimpsePluginEndMetaData return _glimpse_plugin_metadata = ret;}
+#define GlimpsePluginEndMetaData return _glimpse_plugin_metadata = ret;} GLIMPSE_META_FOOTER
 #define GlimpsePluginName(name) ret->Name = name
 #define GlimpsePluginVersion(major,minor,rev) ret->Version[0] = major;\
 	ret->Version[1] = minor;\
