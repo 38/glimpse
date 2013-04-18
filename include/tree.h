@@ -5,7 +5,9 @@
 #include <typesystem.h>
 #include <stdint.h>
 #include <data.h>
-#include <chartable.h>
+#ifdef CHAR_HASH_TABLE
+#	include <chartable.h>
+#endif
 
 typedef struct _glimpse_typedesc GlimpseTypeDesc_t;
 typedef struct _glimpse_type_handler GlimpseTypeHandler_t;
@@ -14,7 +16,11 @@ typedef struct _glimpse_data_model_t GlimpseDataModel_t;
 typedef struct _glimpse_trie_node{
 	uint8_t term;
 	union{
+#ifdef CHAR_HASH_TABLE
 		GlimpseCharTable_t* child;
+#else
+		struct _glimpse_trie_node* child[256];
+#endif
 		struct{
 			GlimpseTypeHandler_t* handler;
 			int idx; 
@@ -61,6 +67,10 @@ static inline GlimpseParserStatus_t glimpse_tree_scan_start(GlimpseParseTree_t* 
 static inline GlimpseParserStatus_t glimpse_tree_scan(GlimpseParserStatus_t status, char ch)
 {
 	if(1 == status->term) return NULL; /* terminus, can not walk down */
+#ifdef CHAR_HASH_TABLE
 	return glimpse_chartable_find(status->s.child,(uint8_t)ch);
+#else
+	return status->s.child[(uint8_t)ch];
+#endif
 }
 #endif

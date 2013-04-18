@@ -1,3 +1,5 @@
+#ifdef CHAR_HASH_TABLE
+/* this file is deprecated, and may be removed in the future */
 #include <chartable.h>
 #include <malloc.h>
 #include <string.h>
@@ -127,3 +129,4 @@ void*  glimpse_chartable_find(GlimpseCharTable_t* table, uint8_t key)
 	if(NULL == rc) return NULL;
 	return rc->value;
 }
+#endif

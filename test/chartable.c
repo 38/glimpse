@@ -1,8 +1,10 @@
 #include <chartable.h>
 #include <assert.h>
 #include <stdio.h>
+#include <future.h>
 int main()
 {
+#ifdef CHAR_HASH_TABLE
 #if __SIZEOF_POINTER__ == 8
 	long long 
 #elif __SIZEOF_POINTER__ == 4
@@ -27,4 +29,5 @@ int main()
 	printf("%zu\n",sizeof(GlimpseCharTable_t));
 	printf("%zu\n",sizeof(GlimpseCharHashNode_t));
 	return 0;
+#endif
 }

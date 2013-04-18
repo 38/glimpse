@@ -1,6 +1,7 @@
 #include <tree.h>
 #include <string.h>
 #include <malloc.h>
+#include <retval.h>
 GlimpseTrieNode_t* glimpse_tree_trienode_new(int terminus)
 {
 	GlimpseTrieNode_t* ret = (GlimpseTrieNode_t*)malloc(sizeof(GlimpseTrieNode_t));
@@ -9,8 +10,10 @@ GlimpseTrieNode_t* glimpse_tree_trienode_new(int terminus)
 	ret->term = terminus;
 	if(!terminus)
 	{
+#ifdef CHAR_HASH_TABLE
 		/* allocate chartable for child */
 		ret->s.child = glimpse_chartable_new();
+#endif
 		if(NULL == ret->s.child) goto ERR;
 	}
 	/* else: we do not handle parse handler here */
@@ -21,7 +24,9 @@ ERR:
 	 * so it's ok that we does not free the memory for 
 	 * terminus handler
 	 */
+#ifdef CHAR_HASH_TABLE
 	if (NULL != ret->s.child) glimpse_chartable_free(ret->s.child);
+#endif
 	free(ret);
 	return NULL;
 }
@@ -32,6 +37,7 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 	{
 		/* bacause the handler is managed by the Type System, we do not need to free them here */
 	}
+#ifdef CHAR_HASH_TABLE
 	else if(NULL != node->s.child)	/* child table should be desposed */
 	{
 		GlimpseCharHashNode_t* p;
@@ -40,6 +46,7 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 			glimpse_tree_trienode_free((GlimpseTrieNode_t*)p->value);
 		glimpse_chartable_free(node->s.child);
 	}
+#endif
 	free(node);
 }
 #ifdef STRING_SEPERATOR_SUPPORT
@@ -123,7 +130,11 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 			GLIMPSE_LOG_ERROR("ambigous key name %s(new) and %s(old)", field, buffer);
 			return EINVAILDARG;
 		}
+#ifdef CHAR_HASH_TABLE
 		GlimpseTrieNode_t* next = (GlimpseTrieNode_t*)glimpse_chartable_find(cur->s.child, val);
+#else
+		GlimpseTrieNode_t* next = cur->s.child[val];
+#endif
 		if(NULL == next) /* child does not exist, allocate it */
 		{
 			GlimpseTrieNode_t* new = glimpse_tree_trienode_new(0); /* Because the kv sep is nonempty string, the node must be an internal node */
@@ -132,6 +143,7 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 				GLIMPSE_LOG_ERROR("can not create new trienode");
 				return EUNKNOWN;
 			}
+#ifdef CHAR_HASH_TABLE
 			int rc = glimpse_chartable_insert(cur->s.child, val, new);
 			if(rc != ESUCCESS)
 			{
@@ -139,6 +151,9 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 				GLIMPSE_LOG_ERROR("can not insert new trienode to chartable");
 				return rc;
 			}
+#else
+			cur->s.child[val] = new;
+#endif
 			next = new;
 		}
 		cur = next; /* go down through the edge */
@@ -160,7 +175,11 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 			GLIMPSE_LOG_ERROR("ambigous key name %s(new) and %s(old)", field, buffer);
 			return EINVAILDARG;
 		}
+#ifdef CHAR_HASH_TABLE
 		GlimpseTrieNode_t* next = (GlimpseTrieNode_t*)glimpse_chartable_find(cur->s.child, val);
+#else
+		GlimpseTrieNode_t* next = cur->cur.child[val];
+#endif
 		if(NULL == next)
 		{
 			GlimpseTrieNode_t* new = glimpse_tree_trienode_new(0 == p[1]); /* p[1] == 0 <==> the last char of sep, terminus */
@@ -169,6 +188,7 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 				GLIMPSE_LOG_ERROR("can not create new trienode");
 				return EUNKNOWN;
 			}
+#ifdef CHAR_HASH_TABLE
 			int rc = glimpse_chartable_insert(cur->s.child, val, new);
 			if(rc != ESUCCESS)
 			{
@@ -176,6 +196,9 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 				GLIMPSE_LOG_ERROR("can not insert new trienode to chartable");
 				return rc;
 			}
+#else
+			cur->s.child[val] = new;
+#endif
 			next = new;
 		}
 		cur = next;
@@ -193,7 +216,11 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 	}
 
 	uint8_t val = (uint8_t) tree->sep_kv;
+#ifdef CHAR_HASH_TABLE
 	GlimpseTrieNode_t* next = (GlimpseTrieNode_t*)glimpse_chartable_find(cur->s.child, val);
+#else
+	GlimpseTrieNode_t* next = cur->s.child[val];
+#endif
 	
 	if(NULL == next)
 	{
@@ -203,6 +230,7 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 			GLIMPSE_LOG_ERROR("can not create new trienode");
 			return EUNKNOWN;
 		}
+#ifdef CHAR_HASH_TABLE
 		int rc = glimpse_chartable_insert(cur->s.child, val, new);
 		if(rc != ESUCCESS)
 		{
@@ -210,6 +238,9 @@ int glimpse_tree_insert(GlimpseParseTree_t* tree, const char* field, GlimpseType
 			GLIMPSE_LOG_ERROR("can not insert new trienode to chartable");
 			return rc;
 		}
+#else
+		cur->s.child[val] = new;
+#endif
 		next = new;
 	}
 	else if(next->term)
@@ -238,8 +269,12 @@ GlimpseDataOffset_t glimpse_tree_query(GlimpseParseTree_t* tree, const char* key
 	for(node = tree->root; node && !node->term && *key; key++)
 	{
 		uint8_t val = (uint8_t)*key;
+#ifdef CHAR_HASH_TABLE
 		if(node->s.child) node = (GlimpseTrieNode_t*)glimpse_chartable_find(node->s.child, val);
 		else node = NULL;
+#else
+		node = node->s.child[val];
+#endif
 	}
 	if(NULL == node) 
 		return -1;
@@ -249,9 +284,13 @@ GlimpseDataOffset_t glimpse_tree_query(GlimpseParseTree_t* tree, const char* key
 #ifdef STRING_SEPERATOR_SUPPORT
 	/* TODO */
 #else
+#ifdef CHAR_HASH_TABLE
 	if(node->s.child) 
 		node = (GlimpseTrieNode_t*)glimpse_chartable_find(node->s.child, (uint8_t)tree->sep_kv);
 	else node = NULL;
+#else
+	node = node->s.child[(uint8_t)tree->sep_kv];
+#endif
 #endif
 	if(NULL == node || !node->term) return -1;
 	return node->s.terminus.idx; 

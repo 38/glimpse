@@ -129,8 +129,12 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 	if(NULL == tree || NULL == text || NULL == storage) return NULL;
 	GlimpseParserStatus_t status = NULL;
 	const char* p;
+	int flag = 1;
 	for(p = text; p && *p;)
 	{
+		if(0 == flag) 
+			if(*(p++) != tree->sep_f) continue;
+		flag = 1;
 		if(NULL == status) status = glimpse_tree_scan_start(tree);
 		if(NULL == status)
 		{
@@ -165,6 +169,7 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 				status = NULL;  /* ready to scan next field */
 			}
 		} 
+		else flag = 0;  /*ignore*/
 		/* 
 		 * else the key does not match anything, so rematch 
 		 */
@@ -195,13 +200,22 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 	}
 	else
 	{
-		GlimpseCharHashNode_t* n;
 		int s = 1024;
 		if(s > level) s = level;
+#ifdef CHAR_HASH_TABLE
+		GlimpseCharHashNode_t* n;
 		for(n = node->s.child->first; n; n = n->list)
 		{
 			key[s] = n->key;
 			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer));
+#else
+		int i;
+		for(i = 0; i < 256; i ++)
+		{
+			if(NULL == node->s.child[i]) continue;
+			key[s] = i;
+			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)node->s.child[i], level + 1, p, size - (p - buffer));
+#endif
 			if(NULL == q) 
 				p += snprintf(p, size - (p - buffer), "(undefined),");
 			else

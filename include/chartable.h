@@ -1,3 +1,5 @@
+#ifdef CHAR_HASH_TABLE
+/* this file is deprecated, and may be removed in the future */
 #ifndef __CHARTABLE_H__
 #define __CHARTABLE_H__
 #include <future.h>
@@ -31,4 +33,5 @@ GlimpseCharTable_t* glimpse_chartable_new();
 void glimpse_chartable_free(GlimpseCharTable_t* table);
 int  glimpse_chartable_insert(GlimpseCharTable_t* table, uint8_t key ,void* value);
 void*  glimpse_chartable_find(GlimpseCharTable_t* table, uint8_t key);
+#endif
 #endif
