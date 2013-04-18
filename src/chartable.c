@@ -70,7 +70,7 @@ static int _glimpse_chartable_resize(GlimpseCharTable_t* table)
 			table->max_chain_len);
 	return ESUCCESS;
 }
-static GlimpseCharHashNode_t* _glimpse_chartable_find(GlimpseCharTable_t* table, uint8_t key)
+static inline GlimpseCharHashNode_t* _glimpse_chartable_find(GlimpseCharTable_t* table, uint8_t key)
 {
 	if(NULL == table) return NULL;
 	int h = key%_glimpse_chartable_hashnum[table->level];

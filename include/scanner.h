@@ -1,6 +1,7 @@
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 #include <tree.h>
+#include <thread.h>
 #ifndef GLIMPSE_SCANNER_MAX_LOG_NUM
 #	define GLIMPSE_SCANNER_MAX_LOG_NUM 1024 /* the max number user can register log */
 #endif
@@ -16,7 +17,7 @@ typedef struct _glimpse_scanner_t{
 	const char* (*before_scan)(const char* text, void* userdata);			/* called before the log has been parsed */
 	int (*after_scan)(void** result, void* userdata);						/* called after the log has been parsed */
 } GlimpseScanner_t;  /* scanner is an singleton in the system */
-const char* glimpse_scanner_parse(const char* text);    /* parse a log the upper most function, it will create the threaddata */
+const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_data);/* parse a log the upper most function*/
 GlimpseParseTree_t* glimpse_scanner_register_tree(const char* name, char sep_f, char sep_v);		/* add a new log to scanner */
 GlimpseParseTree_t* glimpse_scanner_find_tree(const char* name);
 int glimpse_scanner_set_defualt_tree(const char* name);  /* set the log you want to parse */

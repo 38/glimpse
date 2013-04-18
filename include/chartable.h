@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #ifndef GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE
-#	define GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE 2 /* the max chain length allowed */
+#	define GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE 1 /* the max chain length allowed */
 #endif
 typedef struct _glimpse_char_hash_node_t{
 	uint8_t key;

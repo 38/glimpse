@@ -8,4 +8,5 @@ typedef struct _glimpse_thread_data{
 } GlimpseThreadData_t;
 GlimpseThreadData_t* glimpse_thread_data_new();
 void glimpse_thread_data_free(GlimpseThreadData_t* data);
+void glimpse_thread_data_init(GlimpseThreadData_t* data);
 #endif

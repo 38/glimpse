@@ -246,7 +246,9 @@ void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
 		ret->next = NULL;
 		ret->instance = handler->alloc(handler->alloc_data);
 		ret->occupied = 1;
+#ifdef THREAD_SAFE
 		pthread_mutex_init(&ret->mutex, NULL);
+#endif
 		if(NULL == ret->instance) 
 		{
 			free(ret);

@@ -4,14 +4,15 @@
 #include <malloc.h>
 #include <thread.h>
 #include <data.h>
+#include <retval.h>
 static GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
-const char* glimpse_scanner_parse(const char* text)    /* parse a log the upper most function, it will create the threaddata */
+const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_data)    /* parse a log the upper most function */
 {
 	if(NULL == text || NULL == _glimpse_scanner_instance.default_handler) 
 		return NULL;
-	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	if(NULL == thread_data)
 		return NULL;
+	glimpse_thread_data_init(thread_data);
 	GlimpseTypeHandler_t* handler = _glimpse_scanner_instance.default_handler;	
 	void* data_instance = glimpse_typesystem_typehandler_new_instance(handler);
 	if(_glimpse_scanner_instance.before_scan) text = _glimpse_scanner_instance.before_scan(text, 
@@ -20,7 +21,6 @@ const char* glimpse_scanner_parse(const char* text)    /* parse a log the upper 
 	if(_glimpse_scanner_instance.after_scan) _glimpse_scanner_instance.after_scan(((GlimpseDataInstance_t*)data_instance)->data,
 			_glimpse_scanner_instance.after_scan_data);
 	glimpse_typesystem_typehandler_free_instance(data_instance);
-	glimpse_thread_data_free(thread_data);
 	return ret;
 }
 inline static int _glimpse_scanner_find_index(const char* name)

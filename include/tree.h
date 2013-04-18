@@ -2,10 +2,10 @@
 #define __TREE_H__
 #include <future.h>
 #include <log.h>
-#include <chartable.h>
 #include <typesystem.h>
 #include <stdint.h>
 #include <data.h>
+#include <chartable.h>
 
 typedef struct _glimpse_typedesc GlimpseTypeDesc_t;
 typedef struct _glimpse_type_handler GlimpseTypeHandler_t;
@@ -61,6 +61,6 @@ static inline GlimpseParserStatus_t glimpse_tree_scan_start(GlimpseParseTree_t* 
 static inline GlimpseParserStatus_t glimpse_tree_scan(GlimpseParserStatus_t status, char ch)
 {
 	if(1 == status->term) return NULL; /* terminus, can not walk down */
-	return (GlimpseParserStatus_t)glimpse_chartable_find(status->s.child, (uint8_t)ch);
+	return glimpse_chartable_find(status->s.child,(uint8_t)ch);
 }
 #endif

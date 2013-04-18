@@ -8,8 +8,10 @@ typedef struct _glimpse_stack_Frame{
 } GlimpseStackFrame_t;
 typedef struct _glimpse_stack{
 	uint16_t ptr;
+	uint32_t true_val;
 	GlimpseStackFrame_t data[GLIMPSE_MAX_STACK_DEPTH];
 	GlimpseTypeHandler_t* frames[256];
+	uint8_t flag[256];
 } GlimpseStack_t;
 
 
@@ -59,20 +61,24 @@ static inline typeof(((GlimpseTypeHandler_t*)NULL)->parse) glimpse_stack_get_par
 	switch(handler->type->builtin_type)
 	{
 		case GLIMPSE_TYPE_BUILTIN_VECTOR:
-			if(stack->frames[(uint8_t)handler->type->param.vector.sep]) 
+			if(stack->flag[(uint8_t)handler->type->param.vector.sep] == stack->true_val &&
+			   stack->frames[(uint8_t)handler->type->param.vector.sep]) 
 			{
 				GLIMPSE_LOG_ERROR("ambigious sperator %c", handler->type->param.vector.sep);
 				glimpse_stack_print(stack);
 			}
 			stack->frames[(uint8_t)handler->type->param.vector.sep] = handler;
+			stack->flag[(uint8_t)handler->type->param.vector.sep] = stack->true_val;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
-			if(stack->frames[(uint8_t)handler->type->param.sublog.tree->sep_f])
+			if(stack->flag[(uint8_t)handler->type->param.sublog.tree->sep_f] == stack->true_val &&
+			   stack->frames[(uint8_t)handler->type->param.sublog.tree->sep_f])
 			{
 				GLIMPSE_LOG_ERROR("ambigious sperator %c", handler->type->param.sublog.tree->sep_f);
 				glimpse_stack_print(stack);
 			}
 			stack->frames[(uint8_t)handler->type->param.sublog.tree->sep_f] = handler;
+			stack->flag[(uint8_t)handler->type->param.sublog.tree->sep_f] = stack->true_val;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 		case GLIMPSE_TYPE_BUILTIN_NONE:

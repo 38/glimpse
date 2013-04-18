@@ -19,7 +19,7 @@
 		GLIMPSE_LOG_WARNING("`" #type "::" #f1 "' and `" #type "::" #f2 "' occupies discontinious memroy address");\
 		ret = 1;\
 	}else\
-		GLIMPSE_LOG_WARNING("`" #type "::" #f1 "' and `" #type "::" #f2 "' occupies continious memroy address, it seems well-formed");\
+		GLIMPSE_LOG_DEBUG("`" #type "::" #f1 "' and `" #type "::" #f2 "' occupies continious memroy address, it seems well-formed");\
 }while(0)
 static inline int _glimpse_check_types()
 {

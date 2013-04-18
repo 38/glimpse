@@ -37,6 +37,7 @@ int glimpse_typeflag_vector_free(void* data, void* userdata)
 /* TODO: stop-set problem described in parser.c also affects this parser */
 const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
+	/* TODO: every key should between kvsep and f_sep, however current logic is wrong */
 	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
 	GlimpseTypeHandler_t* handler = param->basetype_handler;
 	GlimpseThreadData_t* thread = (GlimpseThreadData_t*) thread_data;
