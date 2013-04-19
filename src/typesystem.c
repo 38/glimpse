@@ -66,7 +66,6 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 	GLIMPSE_LOG_DEBUG("typegroup %s registered", typegroup->name);
 	return ESUCCESS;
 }
-/* TODO: this function is full of bug */
 static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeDesc_t* b)
 {
 	int i;

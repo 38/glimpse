@@ -129,9 +129,15 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 					 handler->parse);
 	return 0;
 }
+int int_property_parser(const char* property, void* buffer)
+{
+	//TODO parse properties
+	return 0;
+}
 GlimpseTypeGroup_t int_type_group = {
 	.name = "integer",
-	.resolve = resolve_int
+	.resolve = resolve_int,
+	.property_parser = int_property_parser
 };
 int init()
 {

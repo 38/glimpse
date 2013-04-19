@@ -1,6 +1,7 @@
 #include <TypeAPI.h>
 #include <pluginloader.h>
 #include <symbol.h>
+int Glimpse_TypeAPI_PthreadMock(void* data){}
 int Glimpse_TypeAPI_PluginInit(void* data)
 {
 	GlimpseAPIDataType(TypeAPI)* meta = (GlimpseAPIDataType(TypeAPI)*)data;
@@ -14,6 +15,10 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.DataObjLock = glimpse_typesystem_instance_object_lock;
 	meta->api_functions.DataObjUnlock = glimpse_typesystem_instance_object_unlock;
 	meta->api_functions.DataObjTrylock = glimpse_typesystem_instance_object_trylock;
+#else
+	meta->api_functions.DataObjLock = Glimpse_TypeAPI_PthreadMock;
+	meta->api_functions.DataObjUnlock = Glimpse_TypeAPI_PthreadMock;
+	meta->api_functions.DataObjTrylock = Glimpse_TypeAPI_PthreadMock;
 #endif
 	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
 	return 0;

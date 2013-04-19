@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(glimpse)
-set(glimpse_log_level 3)
-set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -O3\ -DENABLE_PROFILER)
+set(glimpse_log_level 6)
+set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -DENABLE_PROFILER)
 set(LDFLAGS \ )
 
 include(utils.cmake)

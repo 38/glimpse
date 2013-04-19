@@ -12,11 +12,9 @@ GlimpseAPIData(TypeAPI)
 		void* (*ImportSymbol)(const char* symbol);
 		void* (*DataObjAlloc)(size_t size);
 		void  (*DataObjFree)(void* mem);
-#ifdef THREAD_SAFE
 		int   (*DataObjLock)(void* data);
 		int   (*DataObjUnlock)(void* data);
 		int   (*DataObjTrylock)(void* data);
-#endif
 	GlimpseAPIFunctionsEnd
 	//called by API
 	GlimpsePluginFunctions

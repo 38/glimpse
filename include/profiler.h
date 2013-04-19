@@ -17,7 +17,7 @@ typedef struct _glimpse_profiler_watcher_t{
 void glimpse_profiler_watcher_init(volatile GlimpseProfilerWatcher_t* watcher, const char* file, const char* statement, const char* function, int line);
 #ifdef ENABLE_PROFILER
 #	define GLIMPSE_PROFILER_HEAD(s) \
-		volatile static GlimpseProfilerWatcher_t __local_watcher__ = {};\
+		volatile static GlimpseProfilerWatcher_t __local_watcher__ = {.initialized = 1};\
 		if(!__local_watcher__.initialized) glimpse_profiler_watcher_init(&__local_watcher__, __FILE__, s, __FUNCTION__, __LINE__);\
 		uint64_t begin = glimpse_profiler_rdtsc();
 #	define GLIMPSE_PROFILER_TAIL \

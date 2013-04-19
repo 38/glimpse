@@ -7,6 +7,7 @@
 #include <data.h>
 #include <tree.h>
 #include <retval.h>
+#include <profiler.h>
 #ifdef THREAD_SAFE
 #include <pthread.h>
 #endif
@@ -161,7 +162,8 @@ typedef struct _glimpse_type_handler{
 /* type group */
 typedef struct _glimpse_type_group{
 	char* name;  /* group name */
-	int (*resolve)(const GlimpseTypeDesc_t*, GlimpseTypeHandler_t*); /* function for resolve type */
+	int (*property_parser)(const char* property, void* buffer);     /* parse the text propery and save them into desc */
+	int (*resolve)(const GlimpseTypeDesc_t* desc, GlimpseTypeHandler_t* ret); /* function for resolve type */
 }GlimpseTypeGroup_t;
 
 /* type descriptor manipulation */

@@ -2,6 +2,7 @@
 #include <scanner.h>
 #include <init.h>
 #include <assert.h>
+#include <vector.h>
 #include <integer/integer.h>
 #ifdef GPROF
 #include <google/profiler.h>
@@ -51,7 +52,7 @@ void case0()
 	expected[2] = 789;
 	glimpse_scanner_parse(input = "value1=123 value2=456 value3=789", thread_data);
 	int i = 0;
-	for(i = 0; i < 10000000; i ++)
+	//for(i = 0; i < 10000000; i ++)
 	{
 		expected[0] = 11111;
 		expected[1] = 22222;
@@ -60,6 +61,25 @@ void case0()
 	}
 	glimpse_thread_data_free(thread_data);
 	//glimpse_scanner_cleanup();
+}
+void check_mylog(int a, int b, int c, void* data)
+{
+	GlimpseDataInstance_t* inst = (GlimpseDataInstance_t*)data;
+	assert(a == *(int*)inst->data[0]);
+	assert(b == *(int*)inst->data[1]);
+	assert(c == *(int*)inst->data[2]);
+}
+int case1_check(void** result, void* userdata)
+{
+	GlimpseVector_t* a = result[0];
+	GlimpseVector_t* b = result[1];
+	assert(a->size == 3);
+	assert(b->size == 2);
+	check_mylog(1,2,3,*(void**)glimpse_vector_get(a,0));
+	check_mylog(4,0,6,*(void**)glimpse_vector_get(a,1));
+	check_mylog(8,9,10,*(void**)glimpse_vector_get(a,2));
+	check_mylog(0,2,4,*(void**)glimpse_vector_get(b,0));
+	check_mylog(1,2,3,*(void**)glimpse_vector_get(b,1));
 }
 void case1()
 {
@@ -75,7 +95,7 @@ void case1()
 	glimpse_tree_insert(tree, "b", glimpse_typesystem_typedesc_dup(td));
 	glimpse_scanner_set_defualt_tree("sublogtest");
 	glimpse_scanner_set_before_scan_callback(NULL, NULL);
-	glimpse_scanner_set_after_scan_callback(NULL, NULL);
+	glimpse_scanner_set_after_scan_callback(case1_check, NULL);
 	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	int i = 0;
 	//for(i = 0; i < 10000000; i ++)
