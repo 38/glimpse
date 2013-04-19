@@ -3,7 +3,9 @@
 #include <future.h>
 #include <stack.h>
 typedef struct _glimpse_thread_data{
+#ifdef HANDLER_STACK
 	GlimpseStack_t stack;
+#endif
 	/* add some other data here */
 } GlimpseThreadData_t;
 GlimpseThreadData_t* glimpse_thread_data_new();

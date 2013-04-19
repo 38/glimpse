@@ -1,5 +1,6 @@
 #ifndef __STACK_H__
 #define __STACK_H__
+#ifdef HANDLER_STACK
 #include <typesystem.h>
 #define GLIMPSE_MAX_STACK_DEPTH 1024   /* the max depth of parser recurrent */
 typedef struct _glimpse_stack_Frame{
@@ -45,9 +46,11 @@ static inline void glimpse_stack_pop(GlimpseStack_t* stack)
 	{
 		case GLIMPSE_TYPE_BUILTIN_VECTOR:
 			stack->frames[(uint8_t)handler->type->param.vector.sep] = NULL;
+			stack->flag[(uint8_t)handler->type->param.vector.sep] = 0;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
 			stack->frames[(uint8_t)handler->type->param.sublog.tree->sep_f] = handler;
+			stack->flag[(uint8_t)handler->type->param.sublog.tree->sep_f] = 0;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 		case GLIMPSE_TYPE_BUILTIN_NONE:
@@ -86,4 +89,5 @@ static inline typeof(((GlimpseTypeHandler_t*)NULL)->parse) glimpse_stack_get_par
 	}
 	if(handler->parse) return handler->parse;
 }
+#endif
 #endif

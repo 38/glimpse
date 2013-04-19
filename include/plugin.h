@@ -24,7 +24,7 @@ typedef struct _glimpse_plugin_metadata_t{
 #	define GLIMPSE_META_FOOTER
 #endif 
 #define GlimpsePluginMetaData(APIName) GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
-GLIMPSE_META_HEADER\
+GLIMPSE_META_HEADER \
 GlimpsePluginMetaData_t* GetMetaData(void){\
 	if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
 	GlimpsePluginMetaData_t* ret = \

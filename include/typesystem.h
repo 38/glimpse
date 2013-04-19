@@ -6,6 +6,7 @@
 #include <def.h>
 #include <data.h>
 #include <tree.h>
+#include <retval.h>
 #ifdef THREAD_SAFE
 #include <pthread.h>
 #endif
@@ -29,6 +30,7 @@ struct _glimpse_parse_tree;
 typedef struct _glimpse_typedesc{
 	GlimpseBuiltinTypeFlag_t builtin_type:2; /* which of builtin type are selected */
 	uint8_t extrapulated:1;					 /* is the data are extrapulated from other data, ranther than parsed from text? */
+	uint8_t registered:1;					 /* the flag indicates if the desc registered in type system */
 	/* following union are the parameter for each type */
 	union {
 		/* this type is a vector */
@@ -176,15 +178,16 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
 
 /* handler operations */
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler); 
-void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
-void glimpse_typesystem_typehandler_free_instance(void* instance);
+void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler);
+static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
+static inline void glimpse_typesystem_typehandler_free_instance(void* instance);
 char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size);
 
 /* instance object */
 void* glimpse_typesystem_instance_object_alloc(size_t size);
 void glimpse_typesystem_instance_object_free(void* data);
-int glimpse_typesystem_instance_object_check(void* data); /* check if the data is a instance object */
-GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data); /* get pool node which manage the memory */
+static inline int glimpse_typesystem_instance_object_check(void* data); /* check if the data is a instance object */
+static inline GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data); /* get pool node which manage the memory */
 int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj); /*alias data with pool_obj*/
 #ifdef THREAD_SAFE
 int glimpse_typesystem_instance_object_lock(void* data);
@@ -197,4 +200,90 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type);
 int glimpse_typesystem_init();
 int glimpse_typesystem_cleanup();
 
+/* define inline functions */
+static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
+{
+	GlimpseTypePoolNode_t* ret;
+	if(NULL == handler) return NULL;
+#ifdef THREAD_SAFE
+	pthread_mutex_lock(&handler->pool.mutex);  /* lock the pool */
+#endif
+	if(handler->pool.available_list) /* if there's some available data instance */
+	{
+		ret = handler->pool.available_list;
+		handler->pool.available_list = handler->pool.available_list->next;
+		ret->occupied = 1;
+		GLIMPSE_LOG_DEBUG("reuse pooled memory at <0x%x>", ret->instance);
+	}
+	else ret = glimpse_typesystem_typehandler_alloc_instance(handler);
+	int rc = 0;
+	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
+	if(ESUCCESS != rc)  /*if init failed insert the node into available list*/
+	{
+		ret->next = ret->handler->pool.available_list;
+		ret->handler->pool.available_list = ret;
+		return NULL;
+	}
+	/* insert the new instance into occupied list */
+	ret->next = ret->handler->pool.occupied_list;
+	ret->prev = NULL;
+	if(ret->handler->pool.occupied_list) ret->handler->pool.occupied_list->prev = ret;
+	ret->handler->pool.occupied_list = ret;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&handler->pool.mutex);
+#endif
+	return ret->instance;
+}
+static inline void glimpse_typesystem_typehandler_free_instance(void* instance)
+{
+	if(NULL == instance) return;
+	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
+	if(NULL == node) return;
+	if(!node->occupied) return;  /* if it's not in use */
+#ifdef THREAD_SAFE
+	pthread_mutex_lock(&node->handler->pool.mutex);
+#endif
+	if(node->handler->finalize) node->handler->finalize(instance, node->handler->finalize_data);
+	node->occupied = 0;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&node->mutex);
+#endif
+	/* remove from occupied list */
+	if(NULL == node->prev) /*first node*/
+	{
+		node->handler->pool.occupied_list = node->next;
+		if(node->next) node->next->prev = NULL;
+	}
+	else if(NULL == node->next) /*last node*/
+	{
+		node->prev->next = NULL; 
+	}
+	else
+	{
+		node->prev->next = node->next;
+		node->next->prev = node->prev;
+	}
+	/* add it to available list */
+	node->prev = NULL;
+	node->next = node->handler->pool.available_list;
+	node->handler->pool.available_list = node;
+#ifdef THREAD_SAFE
+	pthread_mutex_unlock(&node->handler->pool.mutex);
+#endif
+}
+
+static inline int glimpse_typesystem_instance_object_check(void* data)
+{
+	if(NULL == data) return 0;
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	if(ret->magic == GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC) return 1;
+	return 0;
+}
+
+static inline GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data)
+{
+	if(!glimpse_typesystem_instance_object_check(data)) return NULL;
+	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
+	return ret->pool_obj;
+}
 #endif

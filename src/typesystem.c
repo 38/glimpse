@@ -26,7 +26,16 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 {
 	if(NULL == typedesc) return;
 	/* because all types are record in the _glimpse_typesystem_known_handler, so 
-	   we does not need to free them recursively */
+	 * we does not need to free them recursively 
+	 * but in some cases, the typedesc might not be managed by typesystem.
+	 * and it requires to be freed recursively 
+	 * the member type in a registered type MUST be a registered type
+	 */
+	if(0 == typedesc->registered &&
+	   typedesc->builtin_type  == GLIMPSE_TYPE_BUILTIN_VECTOR && 
+	   NULL != typedesc->param.vector.basetype &&
+	   0 == typedesc->param.vector.basetype->registered)
+		glimpse_typesystem_typedesc_free(typedesc->param.vector.basetype);
 	free(typedesc);
 }
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type)
@@ -57,6 +66,7 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 	GLIMPSE_LOG_DEBUG("typegroup %s registered", typegroup->name);
 	return ESUCCESS;
 }
+/* TODO: this function is full of bug */
 static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeDesc_t* b)
 {
 	int i;
@@ -69,12 +79,12 @@ static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeD
 #ifdef STRING_SEPERATOR_SUPPORT
 			if(strcmp(a->param.vector.sep, b->param.vector.sep)) return 0;
 #else
-			if(a->param.vector.sep == b->param.vector.sep) return 0;
+			if(a->param.vector.sep != b->param.vector.sep) return 0;
 #endif
 			if(!_glimpse_typesystem_typedesc_equal(a->param.vector.basetype,b->param.vector.basetype)) return 0;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_SUBLOG:
-			if(a->param.sublog.tree != a->param.sublog.tree) return 0;
+			if(a->param.sublog.tree != b->param.sublog.tree) return 0;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 			if(strcmp(a->param.map.target, b->param.map.target)) return 0;
@@ -119,6 +129,9 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 			if(NULL == handler.vector_parser_param[0]) goto ERR_VEC;
 			handler.vector_parser_param[0]->basetype_handler = glimpse_typesystem_query(type->param.vector.basetype);
 			if(NULL == handler.vector_parser_param[0]->basetype_handler) goto ERR_VEC; /* we does not need to free type handler any more */
+			/* because the basetype might be freed after query the type system. (the base type is a known type)
+			 * so it's unsafe to use the type->param.vector.basetype. we need maintain the pointer */
+			type->param.vector.basetype = handler.vector_parser_param[0]->basetype_handler->type; /* this is safe, because it's owned by the basetype */
 			handler.vector_parser_param[0]->sep = type->param.vector.sep;
 #ifdef STRING_SEPERATOR_SUPPORT
 			if(NULL == handler.vector_parser_param[0]->sep) goto ERR_VEC;
@@ -174,6 +187,7 @@ ERR_VEC:
 	
 	int rc = glimpse_vector_push(_glimpse_typesystem_known_handler, &handler);
 	if(ESUCCESS != rc) return NULL;
+	type->registered = 1;
 	/* print log */
 	char buffer[1024];
 	if(glimpse_typesystem_typehandler_tostring(&handler, buffer, sizeof(buffer)))
@@ -204,7 +218,15 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 	for(p = handler->pool.occupied_list; p;)
 	{
 		GlimpseTypePoolNode_t* next = p->next;
-		if(handler->finalize) handler->finalize(p->instance, handler->finalize_data);
+		//if(handler->finalize) handler->finalize(p->instance, handler->finalize_data);
+		/* finalize here will cause problems:
+		 * for example a vector<int>, handler of int has been freed previously,
+		 * then vector's finalize will require int to finalize, this will cause 
+		 * problem.
+		 * so a memery's life cycle should be
+		 * alloc  -->  init --> finalize -->init --> finalize --> init --> free
+		 * so the last finalize should be done during free function if needed 
+		 */
 		if(handler->free) handler->free(p->instance, handler->free_data);
 		free(p);
 		p = next;
@@ -222,100 +244,33 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 	//for vector we does not need to free all element, because it will be done with other handler
 	//because all handler are allocated in _glimpse_typesystem_known_handler, we does not need free them
 }
-void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler)
+void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler)
 {
 	GlimpseTypePoolNode_t* ret;
-	if(NULL == handler) return NULL;
+	if(!handler->alloc) return NULL;
+	ret = (GlimpseTypePoolNode_t*)malloc(sizeof(GlimpseTypePoolNode_t));
+	if(NULL == ret) return NULL;
+	ret->handler = handler;
+	ret->prev = NULL;
+	ret->next = NULL;
+	ret->instance = handler->alloc(handler->alloc_data);
+	ret->occupied = 1;
 #ifdef THREAD_SAFE
-	pthread_mutex_lock(&handler->pool.mutex);  /* lock the pool */
+	pthread_mutex_init(&ret->mutex, NULL);
 #endif
-	if(handler->pool.available_list) /* if there's some available data instance */
+	if(NULL == ret->instance) 
 	{
-		ret = handler->pool.available_list;
-		handler->pool.available_list = handler->pool.available_list->next;
-		ret->occupied = 1;
-		GLIMPSE_LOG_DEBUG("reuse pooled memory at <0x%x>", ret->instance);
-	}
-	else
-	{
-		if(!handler->alloc) return NULL;
-		ret = (GlimpseTypePoolNode_t*)malloc(sizeof(GlimpseTypePoolNode_t));
-		if(NULL == ret) return NULL;
-		ret->handler = handler;
-		ret->prev = NULL;
-		ret->next = NULL;
-		ret->instance = handler->alloc(handler->alloc_data);
-		ret->occupied = 1;
-#ifdef THREAD_SAFE
-		pthread_mutex_init(&ret->mutex, NULL);
-#endif
-		if(NULL == ret->instance) 
-		{
-			free(ret);
-			return NULL;
-		}
-		if(ESUCCESS != glimpse_typesystem_instance_object_alias(ret->instance, ret))
-		{
-			GLIMPSE_LOG_ERROR("memory returned by alloc is not a valid type instance object");
-			free(ret);
-			return NULL;
-		}
-		GLIMPSE_LOG_DEBUG("allocated new memory at <0x%x>", ret->instance);
-	}
-	int rc = 0;
-	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
-	if(ESUCCESS != rc)  /*if init failed insert the node into available list*/
-	{
-		ret->next = ret->handler->pool.available_list;
-		ret->handler->pool.available_list = ret;
+		free(ret);
 		return NULL;
 	}
-	/* insert the new instance into occupied list */
-	ret->next = ret->handler->pool.occupied_list;
-	ret->prev = NULL;
-	if(ret->handler->pool.occupied_list) ret->handler->pool.occupied_list->prev = ret;
-	ret->handler->pool.occupied_list = ret;
-#ifdef THREAD_SAFE
-	pthread_mutex_unlock(&handler->pool.mutex);
-#endif
-	return ret->instance;
-}
-void glimpse_typesystem_typehandler_free_instance(void* instance)
-{
-	if(NULL == instance) return;
-	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
-	if(NULL == node) return;
-	if(!node->occupied) return;  /* if it's not in use */
-#ifdef THREAD_SAFE
-	pthread_mutex_lock(&node->handler->pool.mutex);
-#endif
-	if(node->handler->finalize) node->handler->finalize(instance, node->handler->finalize_data);
-	node->occupied = 0;
-#ifdef THREAD_SAFE
-	pthread_mutex_unlock(&node->mutex);
-#endif
-	/* remove from occupied list */
-	if(NULL == node->prev) /*first node*/
+	if(ESUCCESS != glimpse_typesystem_instance_object_alias(ret->instance, ret))
 	{
-		node->handler->pool.occupied_list = node->next;
-		if(node->next) node->next->prev = NULL;
+		GLIMPSE_LOG_ERROR("memory returned by alloc is not a valid type instance object");
+		free(ret);
+		return NULL;
 	}
-	else if(NULL == node->next) /*last node*/
-	{
-		node->prev->next = NULL; 
-	}
-	else
-	{
-		node->prev->next = node->next;
-		node->next->prev = node->prev;
-	}
-	/* add it to available list */
-	node->prev = NULL;
-	node->next = node->handler->pool.available_list;
-	node->handler->pool.available_list = node;
-#ifdef THREAD_SAFE
-	pthread_mutex_unlock(&node->handler->pool.mutex);
-#endif
+	GLIMPSE_LOG_DEBUG("allocated new memory at <0x%x>", ret->instance);
+	return ret;
 }
 char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size)
 {
@@ -363,13 +318,6 @@ void glimpse_typesystem_instance_object_free(void* data)
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	free(ret);  /* free is threadsafe */
 }
-int glimpse_typesystem_instance_object_check(void* data)
-{
-	if(NULL == data) return 0;
-	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
-	if(ret->magic == GLIMPSE_TYPE_INSTANCE_OBJECT_MAGIC) return 1;
-	return 0;
-}
 int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj)
 {
 	if(!glimpse_typesystem_instance_object_check(data)) return EINVAILDARG;
@@ -377,12 +325,6 @@ int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* 
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	ret->pool_obj = pool_obj;
 	return ESUCCESS;
-}
-GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data)
-{
-	if(!glimpse_typesystem_instance_object_check(data)) return NULL;
-	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
-	return ret->pool_obj;
 }
 #ifdef THREAD_SAFE
 int glimpse_typesystem_instance_object_lock(void* data)

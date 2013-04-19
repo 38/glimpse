@@ -17,7 +17,12 @@ const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_
 	void* data_instance = glimpse_typesystem_typehandler_new_instance(handler);
 	if(_glimpse_scanner_instance.before_scan) text = _glimpse_scanner_instance.before_scan(text, 
 			_glimpse_scanner_instance.before_scan_data);
+#ifdef HANDLER_STACK
 	const char* ret = glimpse_stack_get_parser(&thread_data->stack, handler)(text, data_instance, handler->parse_data, thread_data);
+	glimpse_stack_pop(&thread_data->stack);
+#else
+	const char* ret = handler->parse(text, data_instance, handler->parse_data, thread_data);
+#endif
 	if(_glimpse_scanner_instance.after_scan) _glimpse_scanner_instance.after_scan(((GlimpseDataInstance_t*)data_instance)->data,
 			_glimpse_scanner_instance.after_scan_data);
 	glimpse_typesystem_typehandler_free_instance(data_instance);

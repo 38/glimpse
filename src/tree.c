@@ -46,6 +46,14 @@ void glimpse_tree_trienode_free(GlimpseTrieNode_t* node)
 			glimpse_tree_trienode_free((GlimpseTrieNode_t*)p->value);
 		glimpse_chartable_free(node->s.child);
 	}
+#else
+	else
+	{
+		int i;
+		for(i = 0; i < 256; i ++)
+			if(node->s.child[i])
+				glimpse_tree_trienode_free(node->s.child[i]);
+	}
 #endif
 	free(node);
 }

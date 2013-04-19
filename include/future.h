@@ -12,7 +12,8 @@
  * not compile to the source code
  */
 #ifdef EXPERIMENTAL_FEATURES
-#	define THREAD_SAFE				/* TODO: thread safe */
+#	define THREAD_SAFE			/* make Glimpse thread-safe, but might slow the parser down */
+#	define HANDLER_STACK		/* this make Glimpse record the parser stack, may slow the parser down */
 #endif
 /*
  * deprecated features is features that does not use any more 

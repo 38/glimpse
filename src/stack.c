@@ -1,5 +1,6 @@
 #include <stack.h>
 #include <log.h>
+#ifdef HANDLER_STACK
 void glimpse_stack_print(GlimpseStack_t* stack)
 {
 	if(NULL == stack) return;
@@ -14,3 +15,4 @@ void glimpse_stack_print(GlimpseStack_t* stack)
 	}
 	GLIMPSE_LOG_DEBUG("========================================================");
 }
+#endif

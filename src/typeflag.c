@@ -51,15 +51,23 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		if(NULL == instance)
 		{
 			GLIMPSE_LOG_ERROR("can not allocate memory");
+#ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
+#endif
 			return NULL;
 		}
+#ifdef HANDLER_STACK
 		const char* next = glimpse_stack_get_parser(&thread->stack, handler)(text, instance, handler->parse_data, thread_data); /* thread support */
 		glimpse_stack_pop(&thread->stack); /* cleanup the stack */
+#else
+		const char* next = handler->parse(text, instance, handler->parse_data, thread_data);
+#endif
 		if(NULL == next)
 		{
 			GLIMPSE_LOG_ERROR("failed to parse text");
+#ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
+#endif
 			glimpse_typesystem_typehandler_free_instance(instance);
 			return text;
 		}
@@ -67,7 +75,9 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		if(ESUCCESS != rc)
 		{
 			GLIMPSE_LOG_WARNING("failed to insert to vector");
+#ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
+#endif
 			glimpse_typesystem_typehandler_free_instance(instance);
 		}
 		text = next;
@@ -149,7 +159,12 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 				int id = status->s.terminus.idx;
 				GlimpseTypeHandler_t* handler = status->s.terminus.handler;
 				//const char* next_p = handler->parse(p, storage->data[id], handler->parse_data); /* parse the value */
+#ifdef HANDLER_STACK
 				const char* next_p = glimpse_stack_get_parser(&thread->stack, handler)(p, storage->data[id], handler->parse_data, thread_data);
+				glimpse_stack_pop(&thread->stack);
+#else
+				const char* next_p = handler->parse(p, storage->data[id], handler->parse_data, thread_data);
+#endif
 				if(NULL == next_p)
 				{
 					GLIMPSE_LOG_FATAL("value parser returns a error status, abort");
