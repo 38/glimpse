@@ -215,7 +215,8 @@ static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandl
 		ret->occupied = 1;
 		GLIMPSE_LOG_DEBUG("reuse pooled memory at <0x%x>", ret->instance);
 	}
-	else ret = glimpse_typesystem_typehandler_alloc_instance(handler);
+	else 
+		ret = glimpse_typesystem_typehandler_alloc_instance(handler);
 	int rc = 0;
 	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
 	if(ESUCCESS != rc)  /*if init failed insert the node into available list*/
@@ -282,7 +283,9 @@ static inline int glimpse_typesystem_instance_object_check(void* data)
 
 static inline GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool(void* data)
 {
+#if 0   /* we do not check the pointer, for performance purpose */
 	if(!glimpse_typesystem_instance_object_check(data)) return NULL;
+#endif
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	return ret->pool_obj;
 }
