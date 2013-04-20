@@ -1,6 +1,7 @@
 #include <TypeAPI.h>
 #include <pluginloader.h>
 #include <symbol.h>
+#include <strpool.h>
 int Glimpse_TypeAPI_PthreadMock(void* data){}
 int Glimpse_TypeAPI_PluginInit(void* data)
 {
@@ -20,6 +21,7 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.DataObjUnlock = Glimpse_TypeAPI_PthreadMock;
 	meta->api_functions.DataObjTrylock = Glimpse_TypeAPI_PthreadMock;
 #endif
+	meta->api_functions.StringDuplicate = glimpse_strpool_new;
 	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
 	return 0;
 }

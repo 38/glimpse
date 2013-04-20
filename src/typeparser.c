@@ -28,6 +28,8 @@ int glimpse_typeparser_alias(GlimpseTypeDesc_t* desc, const char* name)
 	}
 	_glimpse_typeparser_alias_table[_glimpse_typeparser_alias_count].type = handler->type;  /* all handler should be queried */
 	_glimpse_typeparser_alias_table[_glimpse_typeparser_alias_count].name = name;
+	_glimpse_typeparser_alias_count ++;
+	GLIMPSE_LOG_DEBUG("typename `%s' = typedesc at <0x%x>",name,desc);
 	return ESUCCESS;
 }
 
@@ -35,12 +37,12 @@ static inline void _glimpse_typeparser_process_property(const char* name, const 
 {
 	if(strcmp(name,"vector") == 0)
 	{
-		if(strcmp(name, "seperator") == 0)
+		if(strcmp(key, "seperator") == 0)
 			desc->param.vector.sep = value[0];
 	}
 	else if(strcmp(name,"log") == 0)
 	{
-		if(strcmp(name, "name") == 0)
+		if(strcmp(key, "name") == 0)
 			desc->param.sublog.tree = glimpse_scanner_find_tree(value);
 	}
 	else if(strcmp(name,"map") == 0)
@@ -55,6 +57,7 @@ static inline void _glimpse_typeparser_process_property(const char* name, const 
 }
 static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseTypeDesc_t** desc)
 {
+	static const char* error_str[] = {"invaild typename", "invaild keyname", "`:' excepted", "invaild value", "unknown error"};
 	int status = 0;
 	int comment = 0;
 	int builtin = GLIMPSE_TYPE_BUILTIN_NONE;
@@ -70,6 +73,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 #define OUTPUT(var) do{ p = var; size = sizeof(var); base=var; var[0] = 0; } while(0)
 #define APPEND(fmt, arg...) p += snprintf(p, size - (p - base), fmt, ##arg)
 #define IGNSPC if(c == ' ' || c == '\n' || c == '\t' || c =='\r') continue
+	const char* begin = text;
 	for(;text && (c = *text); text ++)
 	{
 		if(comment && c != '\n') continue;
@@ -93,7 +97,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				break;
 			case 1:  /* reading a type name */
 				if(IN3(c,'a','z','A','Z','0','9') || c == '_') APPEND("%c",c);
-				else status = 2;
+				else {status = 2; text--; /*ugly hack*/}
 				break;
 			case 2: /* except { */
 				IGNSPC;
@@ -117,7 +121,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				break;
 			case 3: /* type body or }, searching for the first char of key */
 				IGNSPC;
-				if(c == '}') goto END;
+				if(c == '}') goto MOVE_AND_END;
 				if(IN2(c,'a','z','A','Z') || c == '_')
 				{
 					OUTPUT(key);
@@ -130,7 +134,10 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				if(IN3(c,'a','z','A','Z','0','9') || c == '_')
 					APPEND("%c", c);
 				else
-					status = 5;
+				{
+					if(c == ':') status = 6;
+					else status = 5;
+				}
 				break;
 			case 5: /* got a key */
 				IGNSPC;
@@ -139,12 +146,13 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				break;
 			case 6: /* get ready to read value */
 				IGNSPC;
-				if(builtin == GLIMPSE_TYPE_BUILTIN_VECTOR && strcmp(name, "basetype") == 0) 
+				if(builtin == GLIMPSE_TYPE_BUILTIN_VECTOR && strcmp(key, "basetype") == 0) 
 				{
 					GlimpseTypeDesc_t* basetype = NULL;
 					text = _glimpse_typeparser_parse_type_imp(text, &basetype);
 					if(text) (**desc).param.vector.basetype = basetype;
 					status = 3;
+					text --; /* ugly hack */
 					break;
 				}
 				OUTPUT(value);
@@ -156,7 +164,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				else if(c == '}')
 				{
 					_glimpse_typeparser_process_property(name, key, "", *desc);
-					goto END;
+					goto MOVE_AND_END;
 				}
 				else if(c == '"')
 					status = 7, prev = '"';
@@ -174,7 +182,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				{
 					//got a string value
 					_glimpse_typeparser_process_property(name, key, value, *desc);
-					status = 3;
+					status = 10;
 				}
 				else if(c == '\\')
 					status = 9; //escape 
@@ -191,11 +199,11 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				else if(c == '}')
 				{
 					_glimpse_typeparser_process_property(name, key, value, *desc);
-					goto END;
+					goto MOVE_AND_END;
 				}
 				else status = -4; /* reading normal value */
 				break;
-			case 9:
+			case 9: /* escape */
 				switch(c)
 				{
 					case 'n': APPEND("\n"); break;
@@ -206,18 +214,33 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				}
 				status = 7;
 				break;
+			case 10: /* after got a string */
+				IGNSPC;
+				if(c == ',') status = 3;
+				else if(c == '}') goto MOVE_AND_END;
+				else status = -4; 
+				break;
 			default:
+				if(status > 0 || status < -4) status = -5;
+				GLIMPSE_LOG_ERROR("type parser returned with a error status: %s", error_str[-status]);
+				GLIMPSE_LOG_DEBUG("the type descriptor is %s", begin);
 				goto ERR;
 
 		}
 	}
+	if(status == 1) goto END;
 ERR:
-		return NULL;
+	return NULL;
+MOVE_AND_END: text ++;
 END:
-	if(status == 1) /* aliased name */
+	if(status == 1 || status == 2) /* aliased name */
 	{
 		(*desc) = _glimpse_typeparser_find_alias(name);
-
+		if(NULL == *desc)
+		{
+			GLIMPSE_LOG_ERROR("can not find type %s", name);
+			return NULL;
+		}
 	}
 	return text;
 #undef IN
@@ -229,4 +252,26 @@ END:
 }
 GlimpseTypeDesc_t* glimpse_typeparser_parse_type(const char* text)
 {
+	GlimpseTypeDesc_t* ret = NULL;
+	GLIMPSE_LOG_DEBUG("typedesc `%s' is to be parsed",text);
+	text = _glimpse_typeparser_parse_type_imp(text, &ret);
+	if(text == NULL) 
+	{
+		if(ret) glimpse_typesystem_typedesc_free(ret);
+		return NULL;
+	}
+	int comment = 0;
+	const char* p;
+	for(p = text;*p; p ++)
+	{
+		if(*p == '#') comment = 1;
+		if(*p == '\n' && comment) comment = 0;
+		if(*p != ' ' && *p != '\t' && *p != '\n' && *p !='\n'&& !comment)
+		{
+			GLIMPSE_LOG_WARNING("ignoring unexcepted string : %s",p); 
+			break;
+		}
+
+	}
+	return ret;
 }

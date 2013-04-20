@@ -2,7 +2,7 @@
 #define __TYPEPARSER_H__
 #include <typesystem.h>
 #ifndef GLIMPSE_MAX_TYPE_ALIAS
-#	define GLIMPSE_MAX_TYPE_ALIAS 1024
+#	define GLIMPSE_MAX_TYPE_ALIAS 10240
 #endif
 /*
  * the syntax for type description:

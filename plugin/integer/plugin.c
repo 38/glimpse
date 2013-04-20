@@ -131,7 +131,36 @@ int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)
 }
 int int_property_parser(const char* name, const char* value, void* buffer)
 {
-	//TODO parse properties
+#define IFSTREQ(var,val) if(strcmp(var, val) == 0)
+	GlimpseIntegerProperties_t* prop = (GlimpseIntegerProperties_t*)buffer;
+	IFSTREQ(name,"size")
+	{
+		IFSTREQ(value,"8") prop->Size = GlimpseInteger8;
+		else IFSTREQ(value,"16") prop->Size = GlimpseInteger16;
+		else IFSTREQ(value,"32") prop->Size = GlimpseInteger32;
+		else IFSTREQ(value,"variant") prop->Size = GlimpseIntegerVariant;
+		else PLUGIN_LOG_WARNING("invaild integer size %s", value);
+	}
+	else IFSTREQ(name,"signed")
+	{
+		IFSTREQ(value,"true") prop->Signed = 1;
+		else IFSTREQ(value,"false") prop->Signed = 0;
+		else PLUGIN_LOG_WARNING("integer.signed should be either `true' or `false'");
+	}
+	else IFSTREQ(name,"format")
+	{
+		IFSTREQ(value,"dec") prop->Representation = GlimpseIntegerDec;
+		else IFSTREQ(value,"hex") prop->Representation = GlimpseIntegerHex;
+		else IFSTREQ(value,"oct") prop->Representation = GlimpseIntegerOct;
+		else IFSTREQ(value,"bin") prop->Representation = GlimpseIntegerBin;
+		else PLUGIN_LOG_WARNING("invalid format %s", value);
+	}
+	else IFSTREQ(name,"heading")
+		prop->Leading = StrDup(value);
+	else IFSTREQ(name,"heading_after_sign")
+		prop->LeadingAfterSign = StrDup(value);
+	else 
+		PLUGIN_LOG_WARNING("unknown propery for integer");
 	return 0;
 }
 GlimpseTypeGroup_t int_type_group = {

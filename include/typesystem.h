@@ -170,11 +170,7 @@ typedef struct _glimpse_type_group{
 /* type descriptor manipulation */
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties);
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type);
-void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
-#ifndef __TYPESYSTEM_C__
-	__attribute__((warning("this function may cause problem if typedesc has been already queried")))
-#endif
-;
+void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc);
 int glimpse_typesystem_typedesc_set_property(GlimpseTypeDesc_t* desc ,const char* key, const char* value);
 
 /* type group manipulation */
