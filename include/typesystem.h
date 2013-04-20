@@ -162,8 +162,9 @@ typedef struct _glimpse_type_handler{
 /* type group */
 typedef struct _glimpse_type_group{
 	char* name;  /* group name */
-	int (*property_parser)(const char* property, void* buffer);     /* parse the text propery and save them into desc */
+	int (*set_property)(const char* name, const char* value, void* buffer);     /* parse the text propery and save them into desc */
 	int (*resolve)(const GlimpseTypeDesc_t* desc, GlimpseTypeHandler_t* ret); /* function for resolve type */
+	size_t property_size;  /* size of private property */
 }GlimpseTypeGroup_t;
 
 /* type descriptor manipulation */
@@ -174,9 +175,11 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 	__attribute__((warning("this function may cause problem if typedesc has been already queried")))
 #endif
 ;
+int glimpse_typesystem_typedesc_set_property(GlimpseTypeDesc_t* desc ,const char* key, const char* value);
 
 /* type group manipulation */
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup);
+size_t glimpse_typesystem_sizeof_typegroup_prop(const char* name);
 
 /* handler operations */
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler); 

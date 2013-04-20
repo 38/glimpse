@@ -33,31 +33,8 @@
  */
 typedef struct _glimpse_type_alias_t{
 	const char* name;
-	GlimpseTypeHandler_t* handler;
+	GlimpseTypeDesc_t* type;
 } GlimpseTypeAlias_t;
 GlimpseTypeDesc_t* glimpse_typeparser_parse_type(const char* text);
 int glimpse_typeparser_alias(GlimpseTypeDesc_t* desc, const char* name);
-// for lex parsers
-
-typedef struct _glimpse_type_parser_value_t GlimpseTypeParserValue_t;
-typedef struct _glimpse_type_parser_result_t{
-	char name[1024];
-	GlimpseTypeParserValue_t* values;
-} GlimpseTypeParserResult_t;
-typedef struct _glimpse_type_parser_value_t{
-	char key[1024];
-	enum{
-		GLIMPSE_TYPE_INTEGER,
-		GLIMPSE_TYPE_FLOAT,
-		GLIMPSE_TYPE_STRING,
-		GLIMPSE_TYPE_CHAR,
-		GLIMPSE_TYPE_SUBTYPE
-	} type;
-	union{
-		int     I;
-		double  F;
-		char    S[1024];
-		char    C;
-	} value;
-} GlimpseTypeParserValue_t;
 #endif

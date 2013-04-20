@@ -45,6 +45,7 @@ int glimpse_init()
 	}
 	else
 		GLIMPSE_LOG_NOTICE("type check passed, no error found");
+	glimpse_strpool_init();
 	glimpse_typesystem_init();
 	glimpse_scanner_init();
 }
@@ -55,4 +56,5 @@ void glimpse_cleanup()
 	glimpse_typesystem_cleanup();
 	glimpse_symbol_cleaup();
 	glimpse_pluginloader_cleanup();
+	glimpse_strpool_cleanup();
 }

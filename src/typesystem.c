@@ -38,6 +38,21 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 		glimpse_typesystem_typedesc_free(typedesc->param.vector.basetype);
 	free(typedesc);
 }
+int glimpse_typesystem_typedesc_set_property(GlimpseTypeDesc_t* desc ,const char* key, const char* value)
+{
+	int i;
+	if(NULL == desc || NULL == key || NULL == value) return EINVAILDARG;
+	if(desc->builtin_type != GLIMPSE_TYPE_BUILTIN_NONE) return ESUCCESS;
+	for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
+		if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, desc->param.normal.group) == 0)
+		{
+			int rc = EINVAILDARG;
+			if(desc->param.normal.group) 
+				rc = _glimpse_typesystem_typegroup_list[i]->set_property(key, value, desc->properties);
+			return rc;
+		}
+	return ENOTFOUND;
+}
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type)
 {
 	if(NULL == type) return NULL;
@@ -65,6 +80,14 @@ int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 	_glimpse_typesystem_typegroup_list[_glimpse_typesystem_typegroup_count++] = typegroup;
 	GLIMPSE_LOG_DEBUG("typegroup %s registered", typegroup->name);
 	return ESUCCESS;
+}
+size_t glimpse_typesystem_sizeof_typegroup_prop(const char* name)
+{
+	int i;
+	for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
+		if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, name) == 0)
+			return _glimpse_typesystem_typegroup_list[i]->property_size;
+	return 0;
 }
 static int _glimpse_typesystem_typedesc_equal(GlimpseTypeDesc_t* a, GlimpseTypeDesc_t* b)
 {
