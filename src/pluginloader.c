@@ -79,6 +79,7 @@ typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(void);
 static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {
 	int errval = EINVAILDARG;
+	int idx = -1;
 	if(NULL == handler) goto ERR;
 	
 	errval = ESYMNOTFOUND;
@@ -107,7 +108,7 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 	handler->initialized = 1;
 	
 	handler->index = _glimpse_pluginloader_plugin_count;
-	_glimpse_pluginloader_plugin_list[_glimpse_pluginloader_plugin_count++] = handler;
+	_glimpse_pluginloader_plugin_list[idx = _glimpse_pluginloader_plugin_count++] = handler;
 	
 	int i;
 	for(i = 0; handler->MetaData->Dependency && handler->MetaData->Dependency[i]; i ++)
@@ -133,14 +134,17 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 		errval = EDEPEND;
 		GlimpsePluginHandler_t* dep_handler = _glimpse_pluginloader_find_plugin(temp);
 		if(NULL == dep_handler) goto ERR;
-		if(dep_handler->initialized == 2) continue; /* the plugin is already in use */
-		if(dep_handler->initialized == 1)
+		if(dep_handler->initialized == 2) {/*already initialized*/}
+		else
 		{
-			GLIMPSE_LOG_ERROR("loop dependence detected");
-			goto ERR;
+			if(dep_handler->initialized == 1)
+			{
+				GLIMPSE_LOG_ERROR("loop dependence detected");
+				goto ERR;
+			}
+			errval = _glimpse_pluginloader_initilaize_plugin(dep_handler);
+			if(ESUCCESS != errval) goto ERR;
 		}
-		errval = _glimpse_pluginloader_initilaize_plugin(dep_handler);
-		if(ESUCCESS != errval) goto ERR;
 
 		errval = EVERSION;
 		for(j = 0; j < 3; j ++)
@@ -184,11 +188,19 @@ ERR:
 		if(handler->dl_handler) dlclose(handler->dl_handler);
 		free(handler);
 	}
+	for(i = idx + 1; i < _glimpse_pluginloader_plugin_count; i ++)
+		_glimpse_pluginloader_plugin_list[i-1] = _glimpse_pluginloader_plugin_list[i];
+	_glimpse_pluginloader_plugin_count --;
 	return errval;
 }
 int glimpse_pluginloader_load_plugin(const char* name)
 {
 	GlimpsePluginHandler_t* handler = _glimpse_pluginloader_find_plugin(name);
+	if(handler && handler->initialized == 2)
+	{
+		GLIMPSE_LOG_DEBUG("plugin %s has been loaded previously", name);
+		return ESUCCESS;
+	}
 	return _glimpse_pluginloader_initilaize_plugin(handler);
 }
 int glimpse_pluginloader_cleanup()

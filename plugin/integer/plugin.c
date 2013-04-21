@@ -172,7 +172,7 @@ GlimpseTypeGroup_t int_type_group = {
 	.set_property = int_property_parser,
 	.property_size = sizeof(GlimpseIntegerProperties_t)
 };
-int init()
+int plugin_int_init()
 {
 	RegisterTypeGroup(&int_type_group);
 	alias_types();
@@ -181,5 +181,5 @@ int init()
 GlimpsePluginMetaData(TypeAPI)
 	GlimpsePluginName("integer");
 	GlimpsePluginVersion(0,0,1);
-	GlimpsePluginAPICallBack(TypeAPI, OnInitialized) = init; 
+	GlimpsePluginAPICallBack(TypeAPI, OnInitialized) = plugin_int_init; 
 GlimpsePluginEndMetaData

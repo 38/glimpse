@@ -145,10 +145,9 @@ void glimpse_cli_list(int argc, char** argv)
 	IFCMD(plugin){
 		int i;
 		puts("List of Plugins:");
-		puts(" id \t\tName\t\tAPI\t\tDepends");
 		for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
 		{
-			printf("[%d]:\t\t%s\t\t%s\t\t",i,
+			printf("[%d]: %s %s ",i,
 					_glimpse_pluginloader_plugin_list[i]->MetaData->Name,
 					_glimpse_pluginloader_plugin_list[i]->API->APIVersion);
 			int j;
@@ -223,10 +222,12 @@ void glimpse_cli_interactive()
 		if(glimpse_cli_do(argc,argv) < 0) return;
 	}
 }
+void api_init();
 int main(int argc, char** argv)
 {
 	glimpse_init();
 	Glimpse_TypeAPI_init();
+	api_init();
 	glimpse_pluginloader_path[0] = ".";
 	glimpse_pluginloader_path[1] = NULL;
 	glimpse_cli_interactive();  /* start interactive mode */

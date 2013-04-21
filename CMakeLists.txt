@@ -21,6 +21,7 @@ set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -I
 add_executable(glimpse-cli "utils/cli.c")
 target_link_libraries(glimpse-cli readline)
 target_link_libraries(glimpse-cli TypeAPI)
+target_link_libraries(glimpse-cli testapi)
 target_link_libraries(glimpse-cli glimpse)
 target_link_libraries(glimpse-cli dl)
 

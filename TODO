@@ -1,5 +1,6 @@
 1. thread safe    DONE
 2. signal for scanner to stop PARTITIALLY DONE
 3. single value parser ... // a log parser is a parser for single value type, the type is a sublog DONE
-4. parser API
-5. type parser
+4. parser API  
+5. type parser   DONE
+6. how to define a tree user-firendly
