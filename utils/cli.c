@@ -6,6 +6,7 @@
 #include <typesystem.h>
 #include <pluginloader.h>
 #include <stdarg.h>
+#include <typeparser.h>
 #ifndef DEFAULT_PROMPT 
 #	define DEFAULT_PROMPT "Glimpse> "
 #endif
@@ -43,7 +44,7 @@ char** glimpse_cli_split(const char* str, int* argc)
 		{
 			prev = *str;
 			int escape = 0;
-			for(;*str; str++)
+			for(str++;*str; str++)
 			{
 				if(escape)
 				{
@@ -101,6 +102,12 @@ void glimpse_cli_help(int argc, char** argv)
 		glimpse_cli_error("help, import, list, quit, set");
 	}
 }
+extern GlimpseAPIMetaData_t* _glimpse_pluginloader_api_list[MAX_API_VERSION];
+extern GlimpsePluginHandler_t* _glimpse_pluginloader_plugin_list[MAX_PLUGINS];
+extern int _glimpse_pluginloader_api_count ;
+extern int _glimpse_pluginloader_plugin_count;
+extern GlimpseTypeAlias_t _glimpse_typeparser_alias_table[GLIMPSE_MAX_TYPE_ALIAS];
+extern int _glimpse_typeparser_alias_count;
 void glimpse_cli_list(int argc, char** argv)
 {
 	if(argc == 0) glimpse_cli_error("Usage: list [api|type|alias|log|path|plugin]");
@@ -125,11 +132,50 @@ void glimpse_cli_list(int argc, char** argv)
 		int i;
 		puts("List of plugin search pathes:");
 		for(i = 0; glimpse_pluginloader_path[i]; i ++)
-			puts(glimpse_pluginloader_path[i]);
+			printf("[%d]:\t%s\n",i,glimpse_pluginloader_path[i]);
 		puts("");
 	}
 	IFCMD(api){
-
+		int i;
+		puts("List of available APIs:");
+		for(i = 0; i < _glimpse_pluginloader_api_count; i ++)
+			printf("[%d]:\t%s\n",i,_glimpse_pluginloader_api_list[i]->APIVersion);
+		puts("");
+	}
+	IFCMD(plugin){
+		int i;
+		puts("List of Plugins:");
+		puts(" id \t\tName\t\tAPI\t\tDepends");
+		for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
+		{
+			printf("[%d]:\t\t%s\t\t%s\t\t",i,
+					_glimpse_pluginloader_plugin_list[i]->MetaData->Name,
+					_glimpse_pluginloader_plugin_list[i]->API->APIVersion);
+			int j;
+			for(j = 0; _glimpse_pluginloader_plugin_list[i]->MetaData->Dependency
+					&& _glimpse_pluginloader_plugin_list[i]->MetaData->Dependency[j]; j ++)
+			{
+				if(j!=0) printf(",");
+				printf("%s",_glimpse_pluginloader_plugin_list[i]->MetaData->Dependency[j]);
+			}
+			puts("");
+		}
+		puts("");
+	}
+	IFCMD(alias){
+		int i;
+		puts("List of Type Alias:");
+		for(i = 0; i < _glimpse_typeparser_alias_count; i ++)
+		{
+			GlimpseTypeHandler_t* handler = glimpse_typesystem_query(_glimpse_typeparser_alias_table[i].type);
+			char buffer[1024];
+			glimpse_typesystem_typehandler_tostring(handler, buffer, sizeof(buffer));
+			printf("[%d]\t%s = %s\n",i,_glimpse_typeparser_alias_table[i].name,buffer);
+		}
+		puts("");
+	}
+	IFCMD(log){
+		//TODO
 	}
 }
 void glimpse_cli_import(int argc, char** argv)
@@ -142,6 +188,18 @@ void glimpse_cli_import(int argc, char** argv)
 			glimpse_cli_error("failed to import plugin `%s'", argv[i]);
 	}
 }
+void glimpse_cli_define(int argc, char** argv)
+{
+	if(argc != 3) glimpse_cli_error("Usage: define [log|type] description name");
+	IFCMD(type){
+		GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(argv[1]);
+		if(NULL != desc) glimpse_typeparser_alias(desc, argv[2]);
+		else glimpse_cli_error("failed to alias type");
+	}
+	IFCMD(log){
+		//TODO
+	}
+}
 int glimpse_cli_do(int argc, char** argv)
 {
 		if(argc == 0) return 0;
@@ -149,6 +207,7 @@ int glimpse_cli_do(int argc, char** argv)
 		IFCMD(help) glimpse_cli_help(argc-1, argv+1);
 		IFCMD(list) glimpse_cli_list(argc-1, argv+1);
 		IFCMD(import) glimpse_cli_import(argc-1, argv+1);
+		IFCMD(define) glimpse_cli_define(argc-1, argv+1);
 		else glimpse_cli_error("undefined command");
 		return 0;
 }

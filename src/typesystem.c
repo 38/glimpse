@@ -131,7 +131,7 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 		if(NULL == known_handler) continue;
 		if(_glimpse_typesystem_typedesc_equal(known_handler->type, type)) 
 		{
-			glimpse_typesystem_typedesc_free(type);
+			if(!type->registered) glimpse_typesystem_typedesc_free(type);
 			char buffer[1024];
 			if(glimpse_typesystem_typehandler_tostring(known_handler, buffer, sizeof(buffer)))
 				GLIMPSE_LOG_DEBUG("queried an known handler: %s", buffer);

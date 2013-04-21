@@ -7,8 +7,8 @@
 #include <scanner.h>
 #include <stdio.h>
 #include <strpool.h>
-static GlimpseTypeAlias_t _glimpse_typeparser_alias_table[GLIMPSE_MAX_TYPE_ALIAS];
-static int _glimpse_typeparser_alias_count = 0;
+GlimpseTypeAlias_t _glimpse_typeparser_alias_table[GLIMPSE_MAX_TYPE_ALIAS];
+int _glimpse_typeparser_alias_count = 0;
 static inline GlimpseTypeDesc_t* _glimpse_typeparser_find_alias(const char* name)
 {
 	int i;

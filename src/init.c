@@ -44,7 +44,7 @@ int glimpse_init()
 		return EUNKNOWN;
 	}
 	else
-		GLIMPSE_LOG_NOTICE("type check passed, no error found");
+		GLIMPSE_LOG_DEBUG("type check passed, no error found");
 	glimpse_strpool_init();
 	glimpse_typesystem_init();
 	glimpse_scanner_init();
