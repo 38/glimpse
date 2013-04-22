@@ -1,10 +1,20 @@
 cmake_minimum_required(VERSION 2.6)
 project(glimpse)
-set(glimpse_log_level 3)
-set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -DENABLE_PROFILER)
-set(LDFLAGS \ )
+if("$ENV{DEBUG}" EQUAL "1")
+	set(glimpse_log_level 6)
+	set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -DENABLE_PROFILER\ -DGLIMPSE_DEBUG)
+	set(LDFLAGS \ )
+	set(APIList testapi)
+else("$ENV{DEBUG}" EQUAL "1")
+	set(glimpse_log_level 3)
+	set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -O3)
+	set(LDFLAGS \ )
+	set(APIList "")
+endif("$ENV{DEBUG}" EQUAL "1")
 
 include(utils.cmake)
+
+set(APIList ${APIList} TypeAPI)
 
 #build
 
@@ -20,8 +30,7 @@ add_api(api TypeAPI .)
 set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -Iapi/TypeAPI/include)
 add_executable(glimpse-cli "utils/cli.c")
 target_link_libraries(glimpse-cli readline)
-target_link_libraries(glimpse-cli TypeAPI)
-target_link_libraries(glimpse-cli testapi)
+target_link_libraries(glimpse-cli ${APIList})
 target_link_libraries(glimpse-cli glimpse)
 target_link_libraries(glimpse-cli dl)
 

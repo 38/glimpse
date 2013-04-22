@@ -5,7 +5,7 @@
 #include <thread.h>
 #include <data.h>
 #include <retval.h>
-static GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
+GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
 const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_data)    /* parse a log the upper most function */
 {
 	if(NULL == text || NULL == _glimpse_scanner_instance.default_handler) 

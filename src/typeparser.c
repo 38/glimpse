@@ -40,7 +40,7 @@ static inline void _glimpse_typeparser_process_property(const char* name, const 
 		if(strcmp(key, "seperator") == 0)
 			desc->param.vector.sep = value[0];
 	}
-	else if(strcmp(name,"log") == 0)
+	else if(strcmp(name,"sublog") == 0)
 	{
 		if(strcmp(key, "name") == 0)
 			desc->param.sublog.tree = glimpse_scanner_find_tree(value);
