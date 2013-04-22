@@ -1,0 +1,25 @@
+#!/home/ghost/source/glimpse/glimpse-cli -f
+
+echo ${1} ${2}
+echo "==================Known Types before import integer=============="
+list type
+echo "================================================================="
+import integer
+list plugin
+echo "==================Known Types after import integer==============="
+list type
+echo "================================================================="
+echo "Ok, let's define a new type"
+define type "vector{seperator:'#',basetype:uint32d}" vuint32d
+echo "Display the new type vuint32d"
+display type vuint32d
+
+echo "Ok, let's define a new log"
+define log  \
+	'=' '&' \
+	a uint32d \
+	b "vector{seperator:'#',basetype:uint32h}" \
+	mylog
+echo "Ok, display it"
+list log
+display log mylog

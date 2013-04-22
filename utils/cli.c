@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <typeparser.h>
 #include <scanner.h>
+#include <unistd.h>
 #ifndef DEFAULT_PROMPT 
 #	define DEFAULT_PROMPT "Glimpse> "
 #endif
@@ -31,7 +32,6 @@ static inline int glimpse_cli_char_in(char c, const char* chars)
 }
 char** glimpse_cli_split(const char* str, int* argc, FILE* file, int clc, char** clv)
 {
-	const char* readline_buffer = str;
 	static char  strbuf[MAX_LINEBUF*2];
 	static char* buf[MAX_LINEBUF];
 	static char  readbuf[MAX_LINEBUF];
@@ -43,7 +43,8 @@ char** glimpse_cli_split(const char* str, int* argc, FILE* file, int clc, char**
 		for(;*str && glimpse_cli_char_in(*str,"\n\t\r ");str++); /*ignore the leading white space*/
 		if('#' == *str) break; /*outside of a string*/ 
 		if(0 == *str) break;  /* reach the end of the string */
-		buf[count++] = p;
+		if(count == 0 || strlen(buf[count-1]) > 0) count ++; 
+		buf[count-1] = p;
 		if(glimpse_cli_char_in(*str, "\'\""))  /* a string */
 		{
 			prev = *str;
@@ -99,15 +100,17 @@ IN_STRING:
 				*(p++) = '\n';
 				if(NULL == file)
 				{
-					str = readline_buffer = glimpse_cli_readline("quote> ");
-					if(NULL == readline_buffer) return NULL;
+					str = glimpse_cli_readline("quote> ");
+					if(NULL == str) return NULL;
 				}
 				else 
 				{
 					if(fgets(readbuf, sizeof(readbuf), file))
-						str = readline_buffer = readbuf;
+						str = readbuf;
 					else 
 						return NULL;
+					int len = strlen(readbuf);
+					for(;glimpse_cli_char_in(readbuf[len-1],"\n\r");readbuf[--len] = 0);  /* strip the \n */
 				}
 				goto IN_STRING;
 			}
@@ -116,6 +119,7 @@ IN_STRING:
 		else 
 		{
 			for(;*str && !glimpse_cli_char_in(*str,"#\n\t\r "); str ++)
+			{
 				if(str[0] == '$' && str[1] == '{' && clc > 0 && clv != NULL)
 				{
 						int idx = 0;
@@ -136,7 +140,26 @@ IN_STRING:
 						}
 						else *(p++) = '$';
 				}
+				else if(str[0] == '\\' && str[1] == 0)
+				{
+					if(NULL == file)
+					{
+						str = glimpse_cli_readline("cont> ");
+						if(NULL == str) return NULL;
+						str --;
+					}
+					else 
+					{
+						if(fgets(readbuf, sizeof(readbuf), file))
+							str = readbuf - 1;
+						else 
+							return NULL;
+						int len = strlen(readbuf);
+						for(;glimpse_cli_char_in(readbuf[len-1],"\n\r");readbuf[--len] = 0);  /* strip the \n */
+					}
+				}
 				else *(p++) = *str;
+			}
 			*(p++) = 0;
 		}
 		if(0 == *str) break;
@@ -160,11 +183,11 @@ void glimpse_cli_help(int argc, char** argv)
 	if(argc == 0){
 		glimpse_cli_error("which command do you want ?");
 		glimpse_cli_error("Possible command:"); //TODO
-		glimpse_cli_error("define, help, import, list, quit, set");
+		glimpse_cli_error("define, display, help, import, list, quit, set");
 	}
 	IFCMD(define){
-		glimpse_cli_error("define log structure name : define a log and alias the log type with name");
-		glimpse_cli_error("define type <type descriptor> <name>: define type and alias it with name");
+		glimpse_cli_error("define log kv_sep f_sep field1 type1 field2 type2 .... fieldN typeN name : define a log and alias the log type with name");
+		glimpse_cli_error("define type typedesc name : define type and alias it with name");
 	}
 	IFCMD(help){
 		glimpse_cli_error("help <command>: show help for <command>");
@@ -180,10 +203,17 @@ void glimpse_cli_help(int argc, char** argv)
 		glimpse_cli_error("list plugin: list info of plugin that have been loaded");
 		glimpse_cli_error("list type: list all known type ");
 	}
+	IFCMD(display){
+		glimpse_cli_error("display log logname: print the structure of the log");
+		glimpse_cli_error("display type typename: print the description of typename");
+	}
 	IFCMD(quit){
 		glimpse_cli_error("quit: quit the program");
 	}
 	IFCMD(set){
+		glimpse_cli_error("set path path1 path2 path3 ... pathN : set the glimpse plugin search path to path1 .. pathN");
+		glimpse_cli_error("set defualt-log logname: set the scanner defualt log name ");
+		glimpse_cli_error("set output-path path: set where to output");
 	}
 	else{
 		glimpse_cli_error("no such content");
@@ -289,14 +319,42 @@ void glimpse_cli_import(int argc, char** argv)
 }
 void glimpse_cli_define(int argc, char** argv)
 {
-	if(argc != 3) glimpse_cli_error("Usage: define [log|type] description name");
+	if(argc == 0) glimpse_cli_error("Usage: define [log|type]");
 	IFCMD(type){
+		if(argc != 3) 
+		{
+			glimpse_cli_error("Usage: define type typedesc name");
+			return;
+		}
 		GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(argv[1]);
 		if(NULL != desc) glimpse_typeparser_alias(desc, argv[2]);
 		else glimpse_cli_error("failed to alias type");
 	}
 	IFCMD(log){
-		//TODO
+		if(argc < 4 || (argc&1))
+		{
+			glimpse_cli_error("Usage: define log sep_kv sep_f field1 type1 ... fieldN typeN name");
+			return;
+		}
+		GlimpseParseTree_t* tree = glimpse_scanner_register_tree(argv[argc-1], argv[1][0], argv[2][0]);
+		if(tree)
+		{
+			int i;
+			for(i = 3; i < argc - 1; i += 2)
+			{
+				GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(argv[i+1]);
+				if(NULL == desc)
+				{
+					glimpse_cli_error("failed to parse type %s", argv[i+1]);
+					continue;
+				}
+				if(ESUCCESS != glimpse_tree_insert(tree, argv[i], desc))
+				{
+					glimpse_cli_error("failed to insert the field %s into tree", argv[i]);
+					if(!desc->registered)glimpse_typesystem_typedesc_free(desc);
+				}
+			}
+		}
 	}
 }
 void glimpse_cli_display(int argc, char** argv)
@@ -316,6 +374,22 @@ void glimpse_cli_display(int argc, char** argv)
 			else glimpse_cli_error("failed to query the type");
 		}
 		else glimpse_cli_error("failed to parse type desc");
+	}
+	IFCMD(log){
+		char buffer[4096];
+		snprintf(buffer, sizeof(buffer), "sublog{name:%s}", argv[1]);
+		GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(buffer);
+		if(desc)
+		{
+			GlimpseTypeHandler_t* handler = glimpse_typesystem_query(desc);
+			if(handler)
+			{
+				glimpse_typesystem_typehandler_tostring(handler, buffer, sizeof(buffer));
+				puts(buffer);
+			}
+			else glimpse_cli_error("failed to query the type");
+		}
+		else glimpse_cli_error("fialed to parse type desc");
 	}
 }
 int glimpse_cli_do(int argc, char** argv)
@@ -382,7 +456,6 @@ int main(int argc, char** argv)
 	if(argc >= 3 && STREQ(argv[1],"-f"))
 	{
 		glimpse_cli_script(argv[2], argc - 2, argv + 2);
-		return 0;
 	}
 	else glimpse_cli_interactive();  /* start interactive mode */
 	glimpse_cleanup();
