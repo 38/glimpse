@@ -23,3 +23,7 @@ define log  \
 echo "Ok, display it"
 list log
 display log mylog
+
+echo "Ok, let's parse a log"
+set default-log mylog
+parsearg "c=123&b=1#2#3#f&a=10"

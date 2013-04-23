@@ -9,6 +9,8 @@
 #include <typeparser.h>
 #include <scanner.h>
 #include <unistd.h>
+#include <strpool.h>
+#include <time.h>
 #ifndef DEFAULT_PROMPT 
 #	define DEFAULT_PROMPT "Glimpse> "
 #endif
@@ -16,6 +18,8 @@
 #	define MAX_LINEBUF 4096
 #endif
 #define STREQ(a,b) (0 == strcmp((a),(b)))
+FILE* fp_input = NULL;
+FILE* fp_output = NULL;;
 char* glimpse_cli_readline(const char* prompt)
 {
 	static char * buffer = NULL;
@@ -327,7 +331,7 @@ void glimpse_cli_define(int argc, char** argv)
 			return;
 		}
 		GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(argv[1]);
-		if(NULL != desc) glimpse_typeparser_alias(desc, argv[2]);
+		if(NULL != desc) glimpse_typeparser_alias(desc, glimpse_strpool_new(argv[2]));
 		else glimpse_cli_error("failed to alias type");
 	}
 	IFCMD(log){
@@ -336,7 +340,8 @@ void glimpse_cli_define(int argc, char** argv)
 			glimpse_cli_error("Usage: define log sep_kv sep_f field1 type1 ... fieldN typeN name");
 			return;
 		}
-		GlimpseParseTree_t* tree = glimpse_scanner_register_tree(argv[argc-1], argv[1][0], argv[2][0]);
+		GlimpseParseTree_t* tree = glimpse_scanner_register_tree(
+				glimpse_strpool_new(argv[argc-1]), argv[1][0], argv[2][0]);
 		if(tree)
 		{
 			int i;
@@ -392,6 +397,63 @@ void glimpse_cli_display(int argc, char** argv)
 		else glimpse_cli_error("fialed to parse type desc");
 	}
 }
+void glimpse_cli_set(int argc, char** argv)
+{
+	if(argc == 0) glimpse_cli_error("set [path|input|output|output-format|default-log]");
+	IFCMD(path){
+		int i;
+		for(i = 1; i < argc; i ++)
+			glimpse_pluginloader_path[i-1] = glimpse_strpool_new(argv[i]);
+		glimpse_pluginloader_path[argc-1] = NULL;
+	}
+	else if STREQ(argv[0], "default-log") {
+		if(argc == 2)
+			glimpse_scanner_set_defualt_tree(argv[1]);
+		else
+			glimpse_cli_error("set default-log name");
+	}
+	IFCMD(input)
+	{
+		if(argc == 2)
+		{
+			if STREQ(argv[1],"-") fp_input = stdin;
+			else
+			{
+				FILE* fp = fopen(argv[1],"r");
+				if(NULL == fp) return;
+				fp_input = fp;
+			}
+		}
+		else
+			glimpse_cli_error("set input [-|filename] (- stands for stdin");
+	}
+	IFCMD(output)
+	{
+		if(argc == 2)
+		{
+			if STREQ(argv[1],"-") fp_output = stdin;
+			else
+			{
+				FILE* fp = fopen(argv[1],"w");
+				if(NULL == fp) return;
+				fp_output = fp;
+			}
+		}
+		else
+			glimpse_cli_error("set output [-|filename] (- stands for stdin");
+	}
+}
+void glimpse_cli_parse_arg(int argc, char** argv)
+{
+	if(argc != 1)
+	{
+		glimpse_cli_error("Usage: parsearg \"text\"");
+		return;
+	}
+	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
+	glimpse_scanner_parse(argv[1], thread_data);
+	glimpse_thread_data_free(thread_data);
+}
 int glimpse_cli_do(int argc, char** argv)
 {
 		if(argc == 0) return 0;
@@ -409,6 +471,8 @@ int glimpse_cli_do(int argc, char** argv)
 			puts("");
 		}
 		IFCMD(display) glimpse_cli_display(argc-1, argv+1);
+		IFCMD(set) glimpse_cli_set(argc-1, argv+1);
+		IFCMD(parsearg) glimpse_cli_parse_arg(argc-1, argv+1);
 		else glimpse_cli_error("undefined command");
 		return 0;
 }
@@ -421,7 +485,27 @@ void glimpse_cli_interactive()
 		if(NULL == line) return;
 		int argc;
 		char** argv = glimpse_cli_split(line, &argc, NULL, 0, NULL);
+#if 0
+		clock_t start = clock();
+#else
+		unsigned long long start = glimpse_profiler_rdtsc();
+#endif
 		if(glimpse_cli_do(argc,argv) < 0) return;
+#if 0
+		clock_t end = clock();
+		glimpse_cli_error("execute time :%.2f ms",(end-start)*1000.0/CLOCKS_PER_SEC);
+#else
+		unsigned long long end = glimpse_profiler_rdtsc(); 
+		static unsigned long long _interval , _f=1;
+		if(_f)
+		{
+			_f = 0;
+			_interval = glimpse_profiler_rdtsc();
+			usleep(1000);
+			_interval = glimpse_profiler_rdtsc() - _interval;
+		}
+		glimpse_cli_error("execute time :%g ms",(end-start)*1.0/_interval);
+#endif
 	}
 }
 void glimpse_cli_script(const char* filename, int argc, char** argv)
@@ -453,11 +537,15 @@ int main(int argc, char** argv)
 #endif
 	glimpse_pluginloader_path[0] = ".";
 	glimpse_pluginloader_path[1] = NULL;
+	fp_input = stdin;
+	fp_output = stdout;
 	if(argc >= 3 && STREQ(argv[1],"-f"))
 	{
 		glimpse_cli_script(argv[2], argc - 2, argv + 2);
 	}
 	else glimpse_cli_interactive();  /* start interactive mode */
 	glimpse_cleanup();
+	if(fp_input) fclose(fp_input);
+	if(fp_output) fclose(fp_output);
 	return 0;
 }

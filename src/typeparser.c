@@ -47,7 +47,8 @@ static inline void _glimpse_typeparser_process_property(const char* name, const 
 	}
 	else if(strcmp(name,"map") == 0)
 	{
-		//TODO
+		if(strcmp(key, "target") == 0)
+			desc->param.map.target = glimpse_strpool_new(value);
 	}
 	else
 	{
@@ -152,7 +153,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 					text = _glimpse_typeparser_parse_type_imp(text, &basetype);
 					if(text) (**desc).param.vector.basetype = basetype;
 					status = 3;
-					text --; /* ugly hack */
+					if('}' == *text) goto MOVE_AND_END;
 					break;
 				}
 				OUTPUT(value);
@@ -223,7 +224,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 			default:
 				if(status > 0 || status < -4) status = -5;
 				GLIMPSE_LOG_ERROR("type parser returned with a error status: %s", error_str[-status]);
-				GLIMPSE_LOG_DEBUG("the type descriptor is %s", begin);
+				GLIMPSE_LOG_DEBUG("the type descriptor is `%s', offset = %d, string left = `%s'", begin, text- begin,text);
 				goto ERR;
 
 		}

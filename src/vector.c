@@ -55,9 +55,3 @@ int glimpse_vector_push(GlimpseVector_t* vector, void* data)
 	return ESUCCESS;
 }
 
-void* glimpse_vector_get(GlimpseVector_t* vector, int idx)
-{
-	if(NULL == vector) return NULL;
-	if(idx >= vector->size) return NULL;
-	return (void*)(vector->data + vector->elem_size * idx);
-}

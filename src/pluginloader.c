@@ -80,29 +80,29 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 {
 	int errval = EINVAILDARG;
 	int idx = -1;
-	if(NULL == handler) goto ERR;
+	if(NULL == handler) goto ERR_BEFORE_ENQUEUED;
 	
 	errval = ESYMNOTFOUND;
 	GetMetaData_proc proc;
 	proc = (GetMetaData_proc)dlsym(handler->dl_handler, "GetMetaData");
-	if(NULL == proc) goto ERR;
+	if(NULL == proc) goto ERR_BEFORE_ENQUEUED;
 	
 	errval = EUNKNOWN;
 	handler->MetaData = proc();
-	if(NULL == handler->MetaData) goto ERR;
+	if(NULL == handler->MetaData) goto ERR_BEFORE_ENQUEUED;
 
 	errval = EINVAILDARG;
 	if(NULL == handler->MetaData->Name || 
 	   NULL == handler->MetaData->APIVersion) 
 	{
 		GLIMPSE_LOG_ERROR("Invalid Plugin");
-		goto ERR;
+		goto ERR_BEFORE_ENQUEUED;
 	}
 	handler->API = _glimpse_pluginloader_find_api_by_version(handler->MetaData->APIVersion);
 	if(NULL == handler->API)
 	{
 		GLIMPSE_LOG_ERROR("invalid API Version %s", handler->MetaData->APIVersion);
-		goto ERR;
+		goto ERR_BEFORE_ENQUEUED;
 	}
 	
 	handler->initialized = 1;
@@ -182,15 +182,16 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 			handler->MetaData->Version[2]);
 	return ESUCCESS;
 ERR:
+	for(i = idx + 1; i < _glimpse_pluginloader_plugin_count; i ++)
+		_glimpse_pluginloader_plugin_list[i-1] = _glimpse_pluginloader_plugin_list[i];
+	_glimpse_pluginloader_plugin_count --;
+ERR_BEFORE_ENQUEUED:	
 	if(handler)
 	{
 		if(handler->MetaData) free(handler->MetaData);
 		if(handler->dl_handler) dlclose(handler->dl_handler);
 		free(handler);
 	}
-	for(i = idx + 1; i < _glimpse_pluginloader_plugin_count; i ++)
-		_glimpse_pluginloader_plugin_list[i-1] = _glimpse_pluginloader_plugin_list[i];
-	_glimpse_pluginloader_plugin_count --;
 	return errval;
 }
 int glimpse_pluginloader_load_plugin(const char* name)
