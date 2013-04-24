@@ -37,7 +37,7 @@ void case0()
 	prop->Signed = 1;
 	prop->Representation = GlimpseIntegerDec;
 	prop->Leading = prop->LeadingAfterSign = NULL;
-	glimpse_tree_insert(tree ,"value1", td);
+	glimpse_tree_insert(tree ,"value1", glimpse_typesystem_typedesc_dup(td));
 	glimpse_tree_insert(tree ,"value2", glimpse_typesystem_typedesc_dup(td));
 	glimpse_tree_insert(tree ,"value3", glimpse_typesystem_typedesc_dup(td));
 	assert(0 == glimpse_tree_query(tree,"value1"));
@@ -52,7 +52,7 @@ void case0()
 	expected[2] = 789;
 	glimpse_scanner_parse(input = "value1=123 value2=456 value3=789", thread_data);
 	int i = 0;
-	//for(i = 0; i < 10000000; i ++)
+	for(i = 0; i < 10000000; i ++)
 	{
 		expected[0] = 11111;
 		expected[1] = 22222;
@@ -98,7 +98,6 @@ void case1()
 	glimpse_scanner_set_after_scan_callback(case1_check, NULL);
 	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	int i = 0;
-	for(i = 0; i < 10000000; i ++)
 	{
 		glimpse_scanner_parse("a:value1=1 value2=2 value3=3#value1=4 value2 =5 value3=6#value4=7 value1=8 value2=9 value3=10;"
 							  "b:value4=1 value5=2 value3=4 value1=1 value2=2#value1=1 value2=2 value3=3", thread_data);

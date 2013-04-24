@@ -17,6 +17,9 @@ typedef struct _glimpse_scanner_t{
 	void* after_scan_data;
 	const char* (*before_scan)(const char* text, void* userdata);			/* called before the log has been parsed */
 	int (*after_scan)(void** result, void* userdata);						/* called after the log has been parsed */
+#ifdef LAZY_INSTANCE
+	void* data_instance;
+#endif
 } GlimpseScanner_t;  /* scanner is an singleton in the system */
 const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_data);/* parse a log the upper most function*/
 GlimpseParseTree_t* glimpse_scanner_register_tree(const char* name, char sep_f, char sep_v);		/* add a new log to scanner */

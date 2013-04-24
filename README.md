@@ -1,15 +1,29 @@
-glimpse
+Glimpse
 =======
 
 A generic,high-performance key-value log processing framework written in C.
 
-#build glimpse
+#Build Glimpse
 
-cmake is required, and inorder to build the cli(command line interface), libreadline should be installed in your computer.
+prequisite:
 
-cmake . && make
+	cmake
 
-#try glimpse
+	libreadline
 
-you can use the glimpse-cli to try the framework.
+
+How to build?
+
+	1) run `cmake .' to generate Makefile
+
+	2) Edit File <include/future.h> to enable/disable features (optional)
+
+	3) make
+
+#Try Glimpse
+
+	You can try the framework with the shell, glimpse-cli.
+
+	
+	
 

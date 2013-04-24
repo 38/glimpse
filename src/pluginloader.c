@@ -75,6 +75,18 @@ ERR:
 	free(ret);
 	return NULL;
 }
+int glimpse_pluginloader_set_primary_plugin(const char* name)
+{
+	int i;
+	for(i = 0; i < _glimpse_pluginloader_plugin_count; i ++)
+		if(strcmp(_glimpse_pluginloader_plugin_list[i]->MetaData->Name, name) == 0)
+		{
+			GlimpseAPIMetaData_t* api =  _glimpse_pluginloader_plugin_list[i]->API;
+			GlimpsePluginMetaData_t* plugin = _glimpse_pluginloader_plugin_list[i]->MetaData;
+			if(api->OnPrimaryPluginSelected) return api->OnPrimaryPluginSelected(plugin->data);
+		}
+	return ENOTFOUND;
+}
 typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(void);
 static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {

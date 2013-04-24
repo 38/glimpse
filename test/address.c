@@ -21,11 +21,29 @@ int check0(void** res, void* data)
 	assert(2 == *(int*)glimpse_address_fetch(res, exp[3]));
 	assert(1 == *(int*)glimpse_address_fetch(res, exp[4]));
 
-	assert(1 == *(int*)glimpse_address_fetch(res, exp[4],0));
+	assert(1 == *(int*)glimpse_address_fetch(res, exp[5],0));
 	assert(4 == *(int*)glimpse_address_fetch(res, exp[5],1));
 	assert(7 == *(int*)glimpse_address_fetch(res, exp[5],2));
 	
 	assert(3 == *(int*)glimpse_address_fetch(res, exp[6]));
+	assert(3 == *(int*)glimpse_address_fetch(res, exp[7],0));
+	assert(4 == *(int*)glimpse_address_fetch(res, exp[7],1));
+	assert(5 == *(int*)glimpse_address_fetch(res, exp[7],2));
+	
+	assert(1 == *(int*)glimpse_address_fetch(res, exp[8],0,0));
+	assert(2 == *(int*)glimpse_address_fetch(res, exp[8],0,1));
+	assert(3 == *(int*)glimpse_address_fetch(res, exp[8],0,2));
+
+	assert(4 == *(int*)glimpse_address_fetch(res, exp[8],1,0));
+	assert(5 == *(int*)glimpse_address_fetch(res, exp[8],1,1));
+	assert(6 == *(int*)glimpse_address_fetch(res, exp[8],1,2));
+	assert(8 == *(int*)glimpse_address_fetch(res, exp[8],1,3));
+	
+	assert(9 == *(int*)glimpse_address_fetch(res, exp[8],2,0));
+	assert(10 == *(int*)glimpse_address_fetch(res, exp[8],2,1));
+	assert(11 == *(int*)glimpse_address_fetch(res, exp[8],2,2));
+	assert(12 == *(int*)glimpse_address_fetch(res, exp[8],2,3));
+	assert(13 == *(int*)glimpse_address_fetch(res, exp[8],2,4));
 	return 0;
 }
 void case0()
@@ -56,6 +74,7 @@ void case0()
 	exp[7] = glimpse_address_resolve("c[?][#]");
 	exp[8] = glimpse_address_resolve("c[?][?]");
 	int i;
+	for(i = 0; i < 10000000; i ++)
 	glimpse_scanner_parse("a:a=1 b=2 c=3#a=4 b=5 c=6#a=7 b=8 c=9 d=10;"
 						  "b:a=0 b=2 c=4 d=1 e=2#a=1 b=2 c=3;"
 						  "c:1.2.3#4.5.6.8#9.10.11.12.13", thread_data);

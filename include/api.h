@@ -10,6 +10,7 @@ typedef struct _glimpse_api_metadata_t{
 	int (*Finalize)();		 /* Called once before Glimpse exited */
 	int (*PluginInitialize)(void* metadata);  /*Called after plugin loaded, passing handlers to plugin*/
 	int (*PluginFinalize)(void* metadata);	  /*Called befor plugin unloaded, clean up*/
+	int (*OnPrimaryPluginSelected)(void* metadata); /* Called after user select a primary plugin */
 }GlimpseAPIMetaData_t;
 #define GlimpseAPIData(name) typedef struct _glimpse_api_proc_##name GlimpseAPIProc##name;\
 	struct _glimpse_api_proc_##name{

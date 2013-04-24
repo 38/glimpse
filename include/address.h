@@ -63,12 +63,16 @@ int glimpse_address_init();
 int glimpse_address_cleanup();
 
 GlimpseAddress_t* glimpse_address_resolve(const char* text);  /* resolve human-readable address into index based address */
-static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, ...);  /* get a pointer to address */
 
 /* WARNING: for performance reason, we do not check the vailidity of adress and data
  * 			user SHOULD GUAREENTEE THE VAILIDITY BY NOT MODIFYING ADDRESS MANUALLY
  */
-static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, ...)
+#ifdef CHECKED_FETCH
+#	define glimpse_address_fetch(args...) __glimpse_address_fetch_chk__(args,-1)
+#else
+#	define glimpse_address_fetch __glimpse_address_fetch__
+#endif
+static inline void* __glimpse_address_fetch_chk__(void** data, GlimpseAddress_t* addr, ...)
 {
 	void* current_data = ((char*)data) - sizeof(GlimpseDataInstance_t);
 	int i, id;
@@ -87,7 +91,43 @@ static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, .
 					current_data = &((GlimpseVector_t*)current_data)->size;
 					break;
 				case GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX:
-					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data, id = va_arg(ap,int));
+					id = va_arg(ap,int);
+					if(id == -1) goto ERR;
+					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data, id);
+					break;
+				default:
+					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data,addr->op[i].oper.vec.index);
+			}
+	}
+	if(va_arg(ap,int) != -1) 
+	{
+ERR:
+		GLIMPSE_LOG_WARNING("you might have given fetch function some wrong parameter");
+		return NULL;
+	}
+	va_end(ap);
+	return current_data;
+}
+static inline void* __glimpse_address_fetch__(void** data, GlimpseAddress_t* addr, ...)
+{
+	void* current_data = ((char*)data) - sizeof(GlimpseDataInstance_t);
+	int i;
+	va_list ap;
+	va_start(ap, addr);
+	for(i = 0; i < addr->count && current_data; i ++)
+	{
+		if(addr->op[i].type == GLIMPSE_ADDRESSING_TYPE_LOG) /* addressing inside a log */
+		{
+			current_data = ((GlimpseDataInstance_t*)current_data)->data[addr->op[i].oper.log.offset];
+		}
+		else
+			switch(addr->op[i].oper.vec.index)
+			{
+				case GLIMPSE_ADDRESSING_VECTOR_SIZE:
+					current_data = &((GlimpseVector_t*)current_data)->size;
+					break;
+				case GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX:
+					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data, va_arg(ap,int));
 					break;
 				default:
 					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data,addr->op[i].oper.vec.index);

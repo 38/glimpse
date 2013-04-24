@@ -392,7 +392,7 @@ char** glimpse_typesystem_list_knowntypes()
 	for(i = 0; i < _glimpse_typesystem_known_handler->size; i ++)
 	{
 		GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler, i);
-		char buffer[10240];
+		char buffer[1024];
 		if(NULL == glimpse_typesystem_typehandler_tostring(handler, buffer, sizeof(buffer))) goto ERR;
 		int len = strlen(buffer);
 		ret[i] = (char*)malloc(len + 1);

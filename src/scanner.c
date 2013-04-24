@@ -14,18 +14,32 @@ const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_
 		return NULL;
 	glimpse_thread_data_init(thread_data);
 	GlimpseTypeHandler_t* handler = _glimpse_scanner_instance.default_handler;	
+#ifdef LAZY_INSTANCE
+	glimpse_typesystem_typehandler_init_instance(_glimpse_scanner_instance.data_instance);
+#else
 	void* data_instance = glimpse_typesystem_typehandler_new_instance(handler);
+#endif
 	if(_glimpse_scanner_instance.before_scan) text = _glimpse_scanner_instance.before_scan(text, 
 			_glimpse_scanner_instance.before_scan_data);
 #ifdef HANDLER_STACK
 	const char* ret = glimpse_stack_get_parser(&thread_data->stack, handler)(text, data_instance, handler->parse_data, thread_data);
 	glimpse_stack_pop(&thread_data->stack);
-#else
+#else /*HANDLER_STACK*/
+#ifdef LAZY_INSTANCE
+	const char* ret = handler->parse(text, _glimpse_scanner_instance.data_instance, handler->parse_data, thread_data);
+#else /*LAZY_INSTANCE*/
 	const char* ret = handler->parse(text, data_instance, handler->parse_data, thread_data);
-#endif
+#endif/*LAZY_INSTANCE*/
+#endif/*HANDLER_STACK*/
+#ifdef LAZY_INSTANCE
+	if(_glimpse_scanner_instance.after_scan) _glimpse_scanner_instance.after_scan(((GlimpseDataInstance_t*)_glimpse_scanner_instance.data_instance)->data,
+			_glimpse_scanner_instance.after_scan_data);
+	glimpse_typesystem_typehandler_fianlize_instance(_glimpse_scanner_instance.data_instance);
+#else
 	if(_glimpse_scanner_instance.after_scan) _glimpse_scanner_instance.after_scan(((GlimpseDataInstance_t*)data_instance)->data,
 			_glimpse_scanner_instance.after_scan_data);
 	glimpse_typesystem_typehandler_free_instance(data_instance);
+#endif
 	return ret;
 }
 inline static int _glimpse_scanner_find_index(const char* name)
@@ -75,6 +89,11 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 		GLIMPSE_LOG_ERROR("failed to query the type system");
 		return EUNKNOWN;
 	}
+#ifdef LAZY_INSTANCE
+	if(_glimpse_scanner_instance.data_instance) 
+		glimpse_typesystem_typehandler_free_instance(_glimpse_scanner_instance.data_instance);
+	_glimpse_scanner_instance.data_instance = glimpse_typesystem_typehandler_new_instance(_glimpse_scanner_instance.default_handler);
+#endif
 	GLIMPSE_LOG_DEBUG("defualt log parser has been selected");
 	return ESUCCESS;
 }
@@ -100,6 +119,10 @@ void glimpse_scanner_init()
 void glimpse_scanner_cleanup()
 {
 	int i;
+#ifdef LAZY_INSTANCE
+	if(_glimpse_scanner_instance.data_instance) 
+		glimpse_typesystem_typehandler_free_instance(_glimpse_scanner_instance.data_instance);
+#endif
 	for(i = 0; i < _glimpse_scanner_instance.count; i ++)
 	{
 		glimpse_tree_free(_glimpse_scanner_instance.log[i]);

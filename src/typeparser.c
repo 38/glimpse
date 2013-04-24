@@ -151,6 +151,7 @@ static const char* _glimpse_typeparser_parse_type_imp(const char* text, GlimpseT
 				{
 					GlimpseTypeDesc_t* basetype = NULL;
 					text = _glimpse_typeparser_parse_type_imp(text, &basetype);
+					if(NULL == text) goto ERR;
 					if(text) (**desc).param.vector.basetype = basetype;
 					status = 3;
 					if('}' == *text) goto MOVE_AND_END;

@@ -24,7 +24,7 @@ set_source_files_properties(${glimpse_FILES} PROPERTIES COMPILE_FLAGS ${CFLAGS} 
 add_library(glimpse ${glimpse_FILES})
 #type api
 add_api(api TypeAPI .)
-
+add_api(api ParserAPI .)
 
 #glimpse-cli
 set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -Iapi/TypeAPI/include)
