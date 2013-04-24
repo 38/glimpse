@@ -22,7 +22,14 @@ How to build?
 
 #Try Glimpse
 
-	You can try the framework with the shell, glimpse-cli.
+You can try the framework with the shell, glimpse-cli.
+	
+List of Commands:
+
+	define log key type [key type ...] name
+		
+		define a log contains <key,type> pairs
+	
 
 	
 	
