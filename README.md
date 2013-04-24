@@ -24,13 +24,5 @@ How to build?
 
 You can try the framework with the shell, glimpse-cli.
 	
-List of Commands:
-
-	define log key type [key type ...] name
-		
-		define a log contains <key,type> pairs
-	
 
 	
-	
-
