@@ -297,11 +297,11 @@ void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handle
 char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size)
 {
 	if(NULL == handler || NULL == buffer) return NULL;
-	char* ret = buffer;;
+	char* ret = buffer;
 	if(handler->tostring) 
 		ret = handler->tostring(handler, ret, size);
 	else
-		ret += snprintf(ret, size, "Type{group:%s}", handler->type->param.normal.group);
+		ret += glimpse_snprintf(ret, size, "Type{group:%s}", handler->type->param.normal.group);
 	return ret;
 }
 int glimpse_typesystem_init()
@@ -392,7 +392,7 @@ char** glimpse_typesystem_list_knowntypes()
 	for(i = 0; i < _glimpse_typesystem_known_handler->size; i ++)
 	{
 		GlimpseTypeHandler_t* handler = (GlimpseTypeHandler_t*)glimpse_vector_get(_glimpse_typesystem_known_handler, i);
-		char buffer[1024];
+		char buffer[10240];
 		if(NULL == glimpse_typesystem_typehandler_tostring(handler, buffer, sizeof(buffer))) goto ERR;
 		int len = strlen(buffer);
 		ret[i] = (char*)malloc(len + 1);

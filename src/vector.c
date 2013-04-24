@@ -11,6 +11,9 @@ GlimpseVector_t* glimpse_vector_new(size_t elem_size)
 	ret->capacity = GLIMPSE_VECTOR_INIT_CAP;
 	ret->size = 0;
 	ret->elem_size = elem_size;
+#ifdef LAZY_INSTANCE
+	ret->max_size = 0;
+#endif
 	ret->data = (char*)malloc(elem_size * GLIMPSE_VECTOR_INIT_CAP);
 	if(NULL == ret->data)
 	{
@@ -21,6 +24,10 @@ GlimpseVector_t* glimpse_vector_new(size_t elem_size)
 }
 void glimpse_vector_init(GlimpseVector_t* vector)
 {
+#ifdef LAZY_INSTANCE
+	if(vector->max_size < vector->size) 
+		vector->max_size = vector->size;
+#endif
 	vector->size = 0;
 }
 void glimpse_vector_free(GlimpseVector_t* vector)

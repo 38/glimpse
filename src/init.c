@@ -7,6 +7,7 @@
 #include <plugin.h>
 #include <typesystem.h>
 #include <data.h>
+#include <address.h>
 #define _GLIMPSE_CHECK_LAST(type,last) do{\
 	if(sizeof(type) != GLIMPSE_OFFSET_OF(type, last)){\
 		GLIMPSE_LOG_WARNING("`" #type "::" #last "' is not the last member, this may cause problem");\
@@ -48,10 +49,12 @@ int glimpse_init()
 	glimpse_strpool_init();
 	glimpse_typesystem_init();
 	glimpse_scanner_init();
+	glimpse_address_init();	
 }
 /* call the cleanup function */
 void glimpse_cleanup()
 {
+	glimpse_address_cleanup();
 	glimpse_scanner_cleanup();
 	glimpse_typesystem_cleanup();
 	glimpse_symbol_cleaup();

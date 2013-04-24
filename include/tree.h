@@ -5,6 +5,7 @@
 #include <typesystem.h>
 #include <stdint.h>
 #include <data.h>
+#include <def.h>
 #ifdef CHAR_HASH_TABLE
 #	include <chartable.h>
 #endif

@@ -2,6 +2,7 @@
 #define __SCANNER_H__
 #include <tree.h>
 #include <thread.h>
+#include <def.h>
 #ifndef GLIMPSE_SCANNER_MAX_LOG_NUM
 #	define GLIMPSE_SCANNER_MAX_LOG_NUM 1024 /* the max number user can register log */
 #endif
@@ -21,6 +22,7 @@ const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_
 GlimpseParseTree_t* glimpse_scanner_register_tree(const char* name, char sep_f, char sep_v);		/* add a new log to scanner */
 GlimpseParseTree_t* glimpse_scanner_find_tree(const char* name);
 int glimpse_scanner_set_defualt_tree(const char* name);  /* set the log you want to parse */
+GlimpseParseTree_t* glimpse_scanner_get_default_tree();
 void glimpse_scanner_set_before_scan_callback(typeof(((GlimpseScanner_t*)NULL)->before_scan) callback, void* userdata);
 void glimpse_scanner_set_after_scan_callback(typeof(((GlimpseScanner_t*)NULL)->after_scan) callback, void* userdata);
 /* you can use the function defined in typesystem.h and tree.h to add some key to parse 

@@ -43,11 +43,11 @@ char* tostring_int(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 	if(NULL == handler) return NULL;
 	GlimpseIntegerProperties_t* properties = (GlimpseIntegerProperties_t*)handler->type->properties;
 	char *p = buffer;
-	p += snprintf(p, size - (p - buffer), "Integer{");
-	p += snprintf(p, size - (p - buffer), "size:");
+	p += glimpse_snprintf(p, size - (p - buffer), "Integer{");
+	p += glimpse_snprintf(p, size - (p - buffer), "size:");
 #define PRINT_ENUM(name) \
 	case name:\
-		p += snprintf(p, size - (p - buffer), "%s", #name);\
+		p += glimpse_snprintf(p, size - (p - buffer), "%s", #name);\
 		break
 	switch(properties->Size)
 	{
@@ -57,7 +57,7 @@ char* tostring_int(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 		PRINT_ENUM(GlimpseInteger64);
 		PRINT_ENUM(GlimpseIntegerVariant);
 	}
-	p += snprintf(p, size - (p - buffer), ", signed:%s, format:", (properties->Signed?"true":"false") );
+	p += glimpse_snprintf(p, size - (p - buffer), ", signed:%s, format:", (properties->Signed?"true":"false") );
 	switch(properties->Representation)
 	{
 		PRINT_ENUM(GlimpseIntegerBin);
@@ -66,8 +66,8 @@ char* tostring_int(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 		PRINT_ENUM(GlimpseIntegerHex);
 	}
 
-	p += snprintf(p, size - (p - buffer), ", heading:%s , ", properties->Leading);
-	p += snprintf(p, size - (p - buffer), "heading_after_sign:%s}", properties->LeadingAfterSign);
+	p += glimpse_snprintf(p, size - (p - buffer), ", heading:%s , ", properties->Leading);
+	p += glimpse_snprintf(p, size - (p - buffer), "heading_after_sign:%s}", properties->LeadingAfterSign);
 	return p;
 }
 int resolve_int(const GlimpseTypeDesc_t* type, GlimpseTypeHandler_t* handler)

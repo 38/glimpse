@@ -1,6 +1,7 @@
 #ifndef __RETVAL_H__
 #define __RETVAL_H__
 #include <future.h>
+#include <def.h>
 #define ESUCCESS 0
 #define EINVAILDARG -1
 #define ETOOMANYAPI -2

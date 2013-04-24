@@ -2,6 +2,7 @@
 #define __STACK_H__
 #ifdef HANDLER_STACK
 #include <typesystem.h>
+#include <def.h>
 #define GLIMPSE_MAX_STACK_DEPTH 1024   /* the max depth of parser recurrent */
 typedef struct _glimpse_stack_Frame{
 	GlimpseTypeHandler_t* handler;  /* the type handler used for parse in this level */

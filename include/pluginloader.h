@@ -4,6 +4,7 @@
 #include <plugin.h>
 #include <api.h>
 #include <stdint.h>
+#include <def.h>
 /* define how many versions of API dose the framework support */
 #ifndef MAX_API_VERSION
 #	define MAX_API_VERSION 16

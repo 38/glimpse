@@ -78,7 +78,14 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 	GLIMPSE_LOG_DEBUG("defualt log parser has been selected");
 	return ESUCCESS;
 }
-
+GlimpseParseTree_t* glimpse_scanner_get_default_tree()
+{
+	if(NULL == _glimpse_scanner_instance.default_handler) return NULL;
+	if(NULL == _glimpse_scanner_instance.default_handler->type) return NULL;
+	if(GLIMPSE_TYPE_BUILTIN_SUBLOG != _glimpse_scanner_instance.default_handler->type->builtin_type) 
+		return NULL;
+	return _glimpse_scanner_instance.default_handler->type->param.sublog.tree;
+}
 GlimpseParseTree_t* glimpse_scanner_find_tree(const char* name)
 {
 	int idx = _glimpse_scanner_find_index(name);

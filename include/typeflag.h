@@ -2,6 +2,7 @@
 #define __TYPEFLAG_H__
 #include <future.h>
 #include <typesystem.h>
+#include <def.h>
 /* interfaces for process log,vector,map as normal type */
 
 /* vector interface */

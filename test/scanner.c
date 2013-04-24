@@ -78,7 +78,7 @@ int case1_check(void** result, void* userdata)
 	check_mylog(1,2,3,*(void**)glimpse_vector_get(a,0));
 	check_mylog(4,0,6,*(void**)glimpse_vector_get(a,1));
 	check_mylog(8,9,10,*(void**)glimpse_vector_get(a,2));
-	check_mylog(0,2,4,*(void**)glimpse_vector_get(b,0));
+	check_mylog(1,2,4,*(void**)glimpse_vector_get(b,0));
 	check_mylog(1,2,3,*(void**)glimpse_vector_get(b,1));
 }
 void case1()
@@ -98,10 +98,10 @@ void case1()
 	glimpse_scanner_set_after_scan_callback(case1_check, NULL);
 	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();
 	int i = 0;
-	//for(i = 0; i < 10000000; i ++)
+	for(i = 0; i < 10000000; i ++)
 	{
 		glimpse_scanner_parse("a:value1=1 value2=2 value3=3#value1=4 value2 =5 value3=6#value4=7 value1=8 value2=9 value3=10;"
-							  "b:value4=1 value5=2 value3=4 value1 = 1 value2=2#value1=1 value2=2 value3=3", thread_data);
+							  "b:value4=1 value5=2 value3=4 value1=1 value2=2#value1=1 value2=2 value3=3", thread_data);
 	}
 	glimpse_thread_data_free(thread_data);
 }

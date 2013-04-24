@@ -25,7 +25,12 @@ int glimpse_typeflag_vector_finalize(void* data, void* userdata)
 	{
 		void** addr = (void**)glimpse_vector_get(vec, i);
 		if(NULL == addr) continue;
+#ifdef LAZY_INSTANCE
+		glimpse_typesystem_typehandler_fianlize_instance(*addr);  
+		/* we do not actually recycle the memory, just finalize it */
+#else
 		glimpse_typesystem_typehandler_free_instance(*addr);
+#endif
 	}
 	return 0;
 }
@@ -34,40 +39,56 @@ int glimpse_typeflag_vector_free(void* data, void* userdata)
 	glimpse_vector_free((GlimpseVector_t*)data);
 	return 0;
 }
-/* TODO: stop-set problem described in parser.c also affects this parser */
 const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
-	/* TODO: every key should between kvsep and f_sep, however current logic is wrong */
 	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
 	GlimpseTypeHandler_t* handler = param->basetype_handler;
 	GlimpseThreadData_t* thread = (GlimpseThreadData_t*) thread_data;
 	if(handler->parse == NULL || thread == NULL) return text;
 	const char* next;
 	void* instance;
-	while(*text)
+	while(*text 
+#ifdef HANDLER_STACK
+
+#else
+			&& thread->is_term[(uint8_t)*text] != thread->__true__
+#endif
+		)
 	{
 		//memory = handler->alloc(handler->alloc_data);
+#ifdef LAZY_INSTANCE
+		void* free_space = glimpse_vector_next_free_space((GlimpseVector_t*)result);  /* we attempt to reuse the space */
+		if(NULL == free_space) instance = glimpse_typesystem_typehandler_new_instance(handler);
+		else 
+		{
+			instance = *(void**)free_space;
+			if(ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance))  instance = NULL; 
+		}
+#else /*LAZY_INSTANCE*/
 		instance = glimpse_typesystem_typehandler_new_instance(handler);
+#endif /*LAZY_INSTANCE*/
 		if(NULL == instance)
 		{
 			GLIMPSE_LOG_ERROR("can not allocate memory");
 #ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
-#endif
+#endif  /*HANDLER_STACK*/
 			return NULL;
 		}
 #ifdef HANDLER_STACK
 		const char* next = glimpse_stack_get_parser(&thread->stack, handler)(text, instance, handler->parse_data, thread_data); /* thread support */
 		glimpse_stack_pop(&thread->stack); /* cleanup the stack */
-#else
+#else /*HANDLER_STACK*/
+		thread->is_term[(uint8_t)param->sep] = thread->__true__;
 		const char* next = handler->parse(text, instance, handler->parse_data, thread_data);
-#endif
+		thread->is_term[(uint8_t)param->sep] = 0;
+#endif /*HANDLER_STACK*/
 		if(NULL == next)
 		{
 			GLIMPSE_LOG_ERROR("failed to parse text");
 #ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
-#endif
+#endif /*HANDLER_STACK*/
 			glimpse_typesystem_typehandler_free_instance(instance);
 			return text;
 		}
@@ -77,7 +98,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			GLIMPSE_LOG_WARNING("failed to insert to vector");
 #ifdef HANDLER_STACK
 			glimpse_stack_print(&thread->stack);
-#endif
+#endif /*HANDLER_STACK*/
 			glimpse_typesystem_typehandler_free_instance(instance);
 		}
 		text = next;
@@ -90,16 +111,16 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			i ++);
 		if(param->sep[i] == 0) text += i;
 		else return text;
-#else
+#else /*STRING_SEPERATOR_SUPPORT*/
 		if(text[0] && text[0] == param->sep) text ++;
 		else return text;  /* the handler stack already checked */
-#endif
+#endif /*STRING_SEPERATOR_SUPPORT*/
 	}
 }
 char* glimpse_typeflag_vector_tostring(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 {
 	char* p = buffer;
-	p += snprintf(p, size - (p - buffer), "Vector{seperator: "
+	p += glimpse_snprintf(p, size - (p - buffer), "Vector{seperator: "
 #ifdef STRING_SEPERATOR_SUPPORT
 			"%s"
 #else 
@@ -110,7 +131,7 @@ char* glimpse_typeflag_vector_tostring(GlimpseTypeHandler_t* handler, char* buff
 	if(handler->vector_parser_param[0]->basetype_handler)
 		p = glimpse_typesystem_typehandler_tostring(handler->vector_parser_param[0]->basetype_handler, p, size - (p - buffer));
 	if(NULL == p) return NULL;
-	p += snprintf(p, size - (p - buffer), "}");
+	p += glimpse_snprintf(p, size - (p - buffer), "}");
 	return p;
 }
 void* glimpse_typeflag_sublog_alloc(void* userdata)
@@ -140,9 +161,13 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 	GlimpseParserStatus_t status = NULL;
 	const char* p;
 	int flag = 1;
-	for(p = text; p && *p;)
+	for(p = text;*p 
+#ifndef HANDLER_STACK
+			&& thread->is_term[(uint8_t)*p] != thread->__true__
+#endif 
+		;)
 	{
-		if(0 == flag) 
+		if(0 == flag)
 			if(*(p++) != tree->sep_f) continue;
 		flag = 1;
 		if(NULL == status) status = glimpse_tree_scan_start(tree);
@@ -163,7 +188,9 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 				const char* next_p = glimpse_stack_get_parser(&thread->stack, handler)(p, storage->data[id], handler->parse_data, thread_data);
 				glimpse_stack_pop(&thread->stack);
 #else
+				thread->is_term[(uint32_t)tree->sep_f] = thread->__true__;
 				const char* next_p = handler->parse(p, storage->data[id], handler->parse_data, thread_data);
+				thread->is_term[(uint32_t)tree->sep_f] = 0;
 #endif
 				if(NULL == next_p)
 				{
@@ -191,11 +218,10 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 	}
 	return p;
 }
-static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int level, char* buffer, size_t size)
+static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int level, char* buffer, size_t size, char* key)
 {
-	if(node == NULL) return buffer + snprintf(buffer, size, "(nullnode),");
+	if(node == NULL) return buffer + glimpse_snprintf(buffer, size, "(nullnode),");
 	char* p = buffer;
-	static char key[1024];
 	if(node->term)
 	{
 		int s = 1024;
@@ -203,14 +229,14 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 		if(s > level) s = level;
 		key[s] = 0;
 		if(s) key[s-1] = 0;
-		p += snprintf(p, size - (p - buffer), "%s:", key);
+		p += glimpse_snprintf(p, size - (p - buffer), "%s:", key);
 		if(node->s.terminus.handler)
 			 q = glimpse_typesystem_typehandler_tostring(node->s.terminus.handler, p, size - (p - buffer));
 		if(NULL == q) 
-			p += snprintf(p, size - (p - buffer), "(undefined)");
+			p += glimpse_snprintf(p, size - (p - buffer), "(undefined)");
 		else
 			p = q;
-		p += snprintf(p, size - (p - buffer), ",");
+		p += glimpse_snprintf(p, size - (p - buffer), ",");
 		return p;
 	}
 	else
@@ -222,17 +248,17 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 		for(n = node->s.child->first; n; n = n->list)
 		{
 			key[s] = n->key;
-			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer));
+			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer),key);
 #else
 		int i;
 		for(i = 0; i < 256; i ++)
 		{
 			if(NULL == node->s.child[i]) continue;
 			key[s] = i;
-			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)node->s.child[i], level + 1, p, size - (p - buffer));
+			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)node->s.child[i], level + 1, p, size - (p - buffer),key);
 #endif
 			if(NULL == q) 
-				p += snprintf(p, size - (p - buffer), "(undefined),");
+				p += glimpse_snprintf(p, size - (p - buffer), "(undefined),");
 			else
 				p = q;
 		}
@@ -241,11 +267,12 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 }
 char* glimpse_typeflag_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size)
 {
+	char key[1024];
 	if(NULL == type || NULL == buffer) return NULL;
 	char *p = buffer;
-	p += snprintf(buffer, size - (p - buffer), "Log{");
-	p = _glimpse_typeflag_sublog_tostring_imp(type->type->param.sublog.tree->root, 0, p, size - (p - buffer));
-	p += snprintf(p, size - (p - buffer), "sep_kv:'%c',sep_f:'%c'}", 
+	p += glimpse_snprintf(buffer, size - (p - buffer), "Log{");
+	p = _glimpse_typeflag_sublog_tostring_imp(type->type->param.sublog.tree->root, 0, p, size - (p - buffer),key);
+	p += glimpse_snprintf(p, size - (p - buffer), "sep_kv:'%c',sep_f:'%c'}", 
 				  type->type->param.sublog.tree->sep_kv,
 				  type->type->param.sublog.tree->sep_f);
 	return p;

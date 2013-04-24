@@ -182,6 +182,10 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler);
 void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler);
 static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
 static inline void glimpse_typesystem_typehandler_free_instance(void* instance);
+#ifdef LAZY_INSTANCE
+static inline int glimpse_typesystem_typehandler_init_instance(void* instance);
+static inline int glimpse_typesystem_typehandler_fianlize_instance(void* instance);
+#endif
 char* glimpse_typesystem_typehandler_tostring(GlimpseTypeHandler_t* handler, char* buffer,size_t size);
 
 /* instance object */
@@ -293,4 +297,22 @@ static inline GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	return ret->pool_obj;
 }
+#ifdef LAZY_INSTANCE
+static inline int glimpse_typesystem_typehandler_init_instance(void* instance)
+{
+	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
+	if(NULL == node) return EINVAILDARG;
+	int rc = ESUCCESS;
+	if(node->handler->init) rc = node->handler->init(instance, node->handler->init_data);
+	return rc;
+}
+static inline int glimpse_typesystem_typehandler_fianlize_instance(void* instance)
+{
+	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
+	if(NULL == node) return EINVAILDARG;
+	int rc = ESUCCESS;
+	if(node->handler->finalize) rc = node->handler->finalize(instance, node->handler->finalize_data);
+	return rc;
+}
+#endif
 #endif

@@ -2,6 +2,7 @@
 #include <log.h>
 #include <vector.h>
 #include <typesystem.h>
+#include <string.h>
 GlimpseDataModel_t* glimpse_data_model_new()
 {
 	GlimpseDataModel_t* ret = (GlimpseDataModel_t*)malloc(sizeof(GlimpseDataModel_t));
@@ -37,9 +38,13 @@ int glimpse_data_model_insert(GlimpseDataModel_t* model, GlimpseTypeHandler_t* t
 GlimpseDataInstance_t* glimpse_data_instance_new(GlimpseDataModel_t* model)
 {
 	if(NULL == model) return NULL;
+	size_t sz = sizeof(GlimpseDataInstance_t) + GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model)*sizeof(void*);
+			  //sizeof(GlimpseDataInstance_t) + GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model)*sizeof(void*)); 
 	/* data instance was managed by typesystem */
-	GlimpseDataInstance_t* ret = (GlimpseDataInstance_t*)glimpse_typesystem_instance_object_alloc(
-					sizeof(GlimpseDataInstance_t) + GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model)*sizeof(void*)); 
+	GlimpseDataInstance_t* ret = (GlimpseDataInstance_t*)glimpse_typesystem_instance_object_alloc(sz);
+#ifdef LAZY_INSTANCE
+	memset(ret, 0, sz);
+#endif /*LAZY_INSTANCE*/
 	if(NULL == ret) return NULL;
 	ret->model = model; 
 	return ret;
@@ -59,13 +64,27 @@ int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
 	GlimpseDataMember_t* p, *q;
 	for(p = model->members; p; p = p->next)
 	{
+#ifdef LAZY_INSTANCE
+		if(instance->data[p->idx])
+		{
+			if(ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance->data[p->idx]))
+				goto ERR;
+		}
+		else
+			instance->data[p->idx] = glimpse_typesystem_typehandler_new_instance(p->handler);
+#else /*LAZY_INSTANCE*/
 		instance->data[p->idx] = glimpse_typesystem_typehandler_new_instance(p->handler);
+#endif /*LAZY_INSTANCE*/
 		if(NULL == instance->data[p->idx]) goto ERR;
 	}
 	return ESUCCESS;
 ERR:
 	for(q = model->members; q && q != p; q = q->next)
+#ifdef LAZY_INSTANCE
 		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
+#else /*LAZY_INSTANCE*/
+		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
+#endif /*LAZY_INSTANCE*/
 	return EUNKNOWN;
 }
 void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
@@ -74,5 +93,9 @@ void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
 	GlimpseDataModel_t* model = instance->model;
 	GlimpseDataMember_t *p;
 	for(p = model->members; p; p = p->next)
+#ifdef LAZY_INSTANCE
+		glimpse_typesystem_typehandler_fianlize_instance(instance->data[p->idx]);
+#else /*LAZY_INSTANCE*/
 		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
+#endif /*LAZY_INSTANCE*/
 }

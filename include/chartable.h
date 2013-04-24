@@ -7,6 +7,7 @@
 #include <log.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <def.h>
 #ifndef GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE
 #	define GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE 1 /* the max chain length allowed */
 #endif

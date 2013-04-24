@@ -2,6 +2,7 @@
 #define __DATA_H__
 #include <future.h>
 #include <typesystem.h>
+#include <def.h>
 typedef struct _glimpse_data_instance_t GlimpseDataInstance_t;
 typedef struct _glimpse_type_handler GlimpseTypeHandler_t;
 /* member of each data instance */

@@ -1,9 +1,14 @@
 #ifndef __ADDRESSING_H__
 #define __ADDRESSING_H__
+#include <future.h>
 #include <typesystem.h>
 #include <data.h>
 #include <vector.h>
 #include <stdarg.h>
+#include <def.h>
+#ifndef GLIMPSE_MAX_ADDRESS_OPS
+#	define GLIMPSE_MAX_ADDRESS_OPS 64
+#endif
 /*
  * the Glimpse addressing system is a interface for user
  * to fetch the data stored in data instance easily.
@@ -32,63 +37,63 @@
  *	a[#] ==> a pointer to size of vector a
  *	a[0].a ==> a pointer to member a in the first element in vector a 
  */
-typedef struct _glimpse_address_t{
-	int builtin_type;			 /* the builtin-type for this data */
-	GlimpseDataOffset_t offset;  /* the offset inside a data instance */
-	int index;  /* if the builtin_type = vector, it indicates which data you what. if index = -1, it's a variant index,
-				   index = -2 means the pointer to the vector's size
-				   which is determined when user fetch the data */
-	struct _glimpse_address_t* child;  /* if the data contains a sub-data-instance, the addressing should be recursively */
+#define GLIMPSE_ADDRESSING_VECTOR_SIZE -1
+#define GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX -2
+typedef struct _glimpse_address_operations{
+	enum {
+		GLIMPSE_ADDRESSING_TYPE_LOG,
+		GLIMPSE_ADDRESSING_TYPE_VEC
+	} type:1;
+	union{
+		struct{
+			GlimpseDataOffset_t offset;
+		} log;
+		struct{
+			int index;  //special addressing index : GLIMPSE_ADDRESSING_VECTOR_SIZE <== '[#]' ; GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX <=='[?]'
+		} vec;
+	} oper;
+} GlimpseAddressOperations_t;
+
+typedef struct _glimpse_address{
+	uint8_t count;
+	GlimpseAddressOperations_t op[GLIMPSE_MAX_ADDRESS_OPS];
 } GlimpseAddress_t;
 
 int glimpse_address_init();
 int glimpse_address_cleanup();
 
 GlimpseAddress_t* glimpse_address_resolve(const char* text);  /* resolve human-readable address into index based address */
-static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, ...);
+static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, ...);  /* get a pointer to address */
 
+/* WARNING: for performance reason, we do not check the vailidity of adress and data
+ * 			user SHOULD GUAREENTEE THE VAILIDITY BY NOT MODIFYING ADDRESS MANUALLY
+ */
 static inline void* glimpse_address_fetch(void** data, GlimpseAddress_t* addr, ...)
 {
-	GlimpseAddress_t* p;
-	void** d = data;
-	void* ret = NULL;
-	GlimpseVector_t* vector;
+	void* current_data = ((char*)data) - sizeof(GlimpseDataInstance_t);
+	int i, id;
 	va_list ap;
 	va_start(ap, addr);
-	for(p = addr; p; p = p->child)
+	for(i = 0; i < addr->count && current_data; i ++)
 	{
-		switch(p->builtin_type)
+		if(addr->op[i].type == GLIMPSE_ADDRESSING_TYPE_LOG) /* addressing inside a log */
 		{
-			case GLIMPSE_TYPE_BUILTIN_MAP: 
-				//TODO
-				break;
-			case GLIMPSE_TYPE_BUILTIN_VECTOR:
-				vector = (GlimpseVector_t*)(d[p->offset]);
-				if(NULL == vector) return NULL;
-				if(p->index >= 0)
-				{
-					ret = glimpse_vector_get(vector, p->index);
-				}
-				else if(p->index == -1)
-				{
-					int idx = va_arg(ap,int);
-					if(idx < 0) ret = NULL;
-					else ret = glimpse_vector_get(vector, idx);
-				}
-				else if(p->index == -2)
-				{
-					ret = &vector->size;
-				}
-				data = (void**) ret;
-				break;
-			case GLIMPSE_TYPE_BUILTIN_SUBLOG:
-			case GLIMPSE_TYPE_BUILTIN_NONE:
-				data = (void**) (ret = data[p->offset]);
-				break;
+			current_data = ((GlimpseDataInstance_t*)current_data)->data[addr->op[i].oper.log.offset];
 		}
+		else
+			switch(addr->op[i].oper.vec.index)
+			{
+				case GLIMPSE_ADDRESSING_VECTOR_SIZE:
+					current_data = &((GlimpseVector_t*)current_data)->size;
+					break;
+				case GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX:
+					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data, id = va_arg(ap,int));
+					break;
+				default:
+					current_data = *(void**)glimpse_vector_get((GlimpseVector_t*)current_data,addr->op[i].oper.vec.index);
+			}
 	}
-	if(va_arg(ap,int) != -1) GLIMPSE_LOG_ERROR("invalid argument for address fetch function");
 	va_end(ap);
-	return ret;
+	return current_data;
 }
 #endif

@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>
+#include <def.h>
 typedef uint8_t GlimpsePluginVersion[3];
 /* define the plugin metadata*/
 typedef struct _glimpse_plugin_metadata_t{

@@ -8,6 +8,8 @@ GlimpseThreadData_t* glimpse_thread_data_new()
 	memset(ret, 0, sizeof(GlimpseThreadData_t));
 #ifdef HANDLER_STACK
 	ret->stack.true_val = 1;
+#else
+	ret->__true__ = 0;
 #endif
 	return ret;
 }
@@ -21,5 +23,7 @@ void glimpse_thread_data_init(GlimpseThreadData_t* data)
 #ifdef HANDLER_STACK
 	data->stack.ptr = 0;
 	data->stack.true_val ++;
+#else
+	data->__true__ ++;
 #endif
 }
