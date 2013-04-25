@@ -21,6 +21,7 @@
 #ifndef NO_DEFAULT_FEATURES
 #	define LAZY_INSTANCE	/* makes the data instance object does not free the memery after its death, 
 							 * hoping this will reduce the time of calling instance new/free */
+#	define THREAD_SAFE			/* make Glimpse thread-safe, but might slow the parser down */
 #endif
 /*
  * deprecated features is features that does not use any more 

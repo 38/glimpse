@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(glimpse)
+set(glimpse_version "0.0.1")
 if("$ENV{DEBUG}" EQUAL "1")
 	set(glimpse_log_level 6)
 	set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -DENABLE_PROFILER\ -DGLIMPSE_DEBUG)
@@ -20,7 +21,7 @@ set(APIList ${APIList} TypeAPI)
 
 #libglimpse.a
 aux_source_directory(src/ glimpse_FILES)
-set_source_files_properties(${glimpse_FILES} PROPERTIES COMPILE_FLAGS ${CFLAGS} )
+set_source_files_properties(${glimpse_FILES} PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -DVERSION=\\\"${glimpse_version}\\\" )
 add_library(glimpse ${glimpse_FILES})
 #type api
 add_api(api TypeAPI .)
@@ -33,6 +34,7 @@ target_link_libraries(glimpse-cli readline)
 target_link_libraries(glimpse-cli ${APIList})
 target_link_libraries(glimpse-cli glimpse)
 target_link_libraries(glimpse-cli dl)
+target_link_libraries(glimpse-cli pthread)
 
 add_plugin(test/plugin testapi_plugin test/api/testapi test)
 add_utest(log)
