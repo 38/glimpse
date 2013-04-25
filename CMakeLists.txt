@@ -16,6 +16,7 @@ endif("$ENV{DEBUG}" EQUAL "1")
 include(utils.cmake)
 
 set(APIList ${APIList} TypeAPI)
+set(plugin_dir .)
 
 #build
 
@@ -28,13 +29,15 @@ add_api(api TypeAPI .)
 add_api(api ParserAPI .)
 
 #glimpse-cli
-set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -Iapi/TypeAPI/include)
+set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -Iapi/TypeAPI/include\ -DGLIMPSE_CLI_DEFAULT_PATH=\\\"${plugin_dir}\\\")
 add_executable(glimpse-cli "utils/cli.c")
 target_link_libraries(glimpse-cli readline)
 target_link_libraries(glimpse-cli ${APIList})
 target_link_libraries(glimpse-cli glimpse)
 target_link_libraries(glimpse-cli dl)
 target_link_libraries(glimpse-cli pthread)
+
+#installation
 
 add_plugin(test/plugin testapi_plugin test/api/testapi test)
 add_utest(log)

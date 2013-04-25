@@ -545,7 +545,7 @@ int main(int argc, char** argv)
 #ifdef GLIMPSE_DEBUG
 	api_init();
 #endif
-	glimpse_pluginloader_path[0] = ".";
+	glimpse_pluginloader_path[0] = GLIMPSE_CLI_DEFAULT_PATH;
 	glimpse_pluginloader_path[1] = NULL;
 	fp_input = stdin;
 	fp_output = stdout;
