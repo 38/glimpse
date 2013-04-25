@@ -1,4 +1,4 @@
-/* def.h -   
+/* def.h - helper functions and macroes
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

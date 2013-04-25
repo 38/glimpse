@@ -1,4 +1,4 @@
-/* vector.h -   
+/* vector.h - A dymaniclly resizing vector 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

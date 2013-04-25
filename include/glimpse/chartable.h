@@ -1,4 +1,4 @@
-/* chartable.h -   
+/* chartable.h - A char-key hash table
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 
@@ -17,8 +17,8 @@
  *
  */
 	
-#ifdef CHAR_HASH_TABLE
 /* this file is deprecated, and may be removed in the future */
+#ifdef CHAR_HASH_TABLE
 #ifndef __CHARTABLE_H__
 #define __CHARTABLE_H__
 #include <future.h>

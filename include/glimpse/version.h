@@ -1,4 +1,4 @@
-/* version.h -   
+/* version.h -  Version of Glimpse
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

@@ -1,4 +1,4 @@
-/* future.h -   
+/* future.h - feature switches 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

@@ -1,4 +1,4 @@
-/* api.h -   
+/* api.h - tools for API developers 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

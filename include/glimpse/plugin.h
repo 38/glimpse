@@ -1,4 +1,4 @@
-/* plugin.h -   
+/* plugin.h - plugin utils 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

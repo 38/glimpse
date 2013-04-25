@@ -1,4 +1,4 @@
-/* tree.h -   
+/* tree.h - the parser tree 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

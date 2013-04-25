@@ -1,4 +1,4 @@
-/* log.h -   
+/* log.h - log utils 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

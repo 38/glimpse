@@ -1,4 +1,4 @@
-/* strpool.h -   
+/* strpool.h - string pool, free memory automatically 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

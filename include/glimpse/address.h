@@ -1,4 +1,4 @@
-/* address.h -   
+/* address.h - Fetch data address inside a data instance object
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

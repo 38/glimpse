@@ -1,4 +1,4 @@
-/* stack.h -   
+/* stack.h - the type handler stack 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

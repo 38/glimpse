@@ -1,4 +1,4 @@
-/* retval.h -   
+/* retval.h - error values 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

@@ -1,4 +1,4 @@
-/* typesystem.h -   
+/* typesystem.h - The Glimpse Type System, Types, Handlers, Instance manipulation 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

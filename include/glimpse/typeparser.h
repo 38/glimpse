@@ -1,4 +1,4 @@
-/* typeparser.h -   
+/* typeparser.h - a parser that convert human-readable json-like type description into type descriptor
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

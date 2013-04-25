@@ -1,4 +1,4 @@
-/* pluginloader.h -   
+/* pluginloader.h - A plugin loader 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

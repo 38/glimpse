@@ -1,4 +1,4 @@
-/* thread.h -   
+/* thread.h -  thread related data 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

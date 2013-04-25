@@ -1,4 +1,4 @@
-/* cli.c -   
+/* cli.c - Command Line Interface for Glimpse  
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 
@@ -564,8 +564,9 @@ int main(int argc, char** argv)
 #ifdef GLIMPSE_DEBUG
 	api_init();
 #endif
-	glimpse_pluginloader_path[0] = GLIMPSE_CLI_DEFAULT_PATH;
-	glimpse_pluginloader_path[1] = NULL;
+	glimpse_pluginloader_path[0] = ".";
+	glimpse_pluginloader_path[1] = GLIMPSE_CLI_DEFAULT_PATH;
+	glimpse_pluginloader_path[2] = NULL;
 	fp_input = stdin;
 	fp_output = stdout;
 	if(argc >= 3 && STREQ(argv[1],"-f"))

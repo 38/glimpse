@@ -1,4 +1,4 @@
-/* symbol.h -   
+/* symbol.h - export & import a symbol  
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

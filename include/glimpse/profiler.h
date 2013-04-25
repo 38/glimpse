@@ -1,4 +1,4 @@
-/* profiler.h -   
+/* profiler.h - tools for performance testing 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

@@ -1,4 +1,4 @@
-/* builtintype.h -   
+/* builtintype.h - gourp of functions that manipulates builtin types
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 

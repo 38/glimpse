@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(glimpse)
 set(glimpse_version "0.0.1")
+set(CMAKE_INSTALL_PREFIX "$ENV{PREFIX}")
 if("$ENV{DEBUG}" EQUAL "1")
 	set(glimpse_log_level 6)
 	set(CFLAGS -g\ -DLOG_LEVEL=${glimpse_log_level}\ -DENABLE_PROFILER\ -DGLIMPSE_DEBUG)
@@ -16,7 +17,7 @@ endif("$ENV{DEBUG}" EQUAL "1")
 include(utils.cmake)
 
 set(APIList ${APIList} TypeAPI)
-set(plugin_dir .)
+set(plugin_dir ${CMAKE_INSTALL_PREFIX}/lib/glimpse/plugins/)
 
 #build
 
@@ -24,9 +25,12 @@ set(plugin_dir .)
 aux_source_directory(src/ glimpse_FILES)
 set_source_files_properties(${glimpse_FILES} PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -DVERSION=\\\"${glimpse_version}\\\" )
 add_library(glimpse ${glimpse_FILES})
-#type api
+
 add_api(api TypeAPI .)
 add_api(api ParserAPI .)
+
+#plugins
+add_plugin(plugin integer api/TypeAPI .)
 
 #glimpse-cli
 set_source_files_properties("utils/cli.c" PROPERTIES COMPILE_FLAGS ${CFLAGS}\ -Iapi/TypeAPI/include\ -DGLIMPSE_CLI_DEFAULT_PATH=\\\"${plugin_dir}\\\")
@@ -38,6 +42,12 @@ target_link_libraries(glimpse-cli dl)
 target_link_libraries(glimpse-cli pthread)
 
 #installation
+install_headers(include "")
+install_headers(include glimpse)
+install_api(api TypeAPI)
+install_api(api ParserAPI)
+install_plugin(plugin integer)
+install_targets(/bin glimpse-cli)
 
 add_plugin(test/plugin testapi_plugin test/api/testapi test)
 add_utest(log)
@@ -52,7 +62,6 @@ add_plugin(test/plugin loopdep_B test/api/testapi test)
 add_plugin(test/plugin baddep_A test/api/testapi test)
 add_plugin(test/plugin baddep_B test/api/testapi test)
 add_utest_with_api(plugindep testapi test/api/testapi) 
-add_plugin(plugin integer api/TypeAPI .)
 add_utest_with_api(integer TypeAPI api/TypeAPI)
 add_utest(symbol)
 add_plugin(test/plugin export api/TypeAPI test)

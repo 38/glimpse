@@ -1,4 +1,4 @@
-/* data.h -   
+/* data.h - data instance manipulation 
  *
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 
