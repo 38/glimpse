@@ -24,16 +24,3 @@ How to build?
 
 You can try the framework with the shell, glimpse-cli.
 	
-List of Commands:
-
-	define log key type [key type ...] name : define a log
-	
-	define type type_descriptor name :	define a type
-
-	display type typedesc
-
-
-
-	
-	
-
