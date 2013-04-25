@@ -1,16 +1,19 @@
-#ifndef __TYPESYSTEM_H__
-#define __TYPESYSTEM_H__
-#include <future.h>
+#ifndef __GLIMPSE_TYPESYSTEM_H__
+#define __GLIMPSE_TYPESYSTEM_H__
 #include <stdlib.h>
 #include <stdint.h>
-#include <def.h>
-#include <data.h>
-#include <tree.h>
-#include <retval.h>
-#include <profiler.h>
+
 #ifdef THREAD_SAFE
 #include <pthread.h>
 #endif
+
+#include <glimpse/future.h>
+#include <glimpse/profiler.h>
+#include <glimpse/def.h>
+#include <glimpse/data.h>
+#include <glimpse/tree.h>
+#include <glimpse/retval.h>
+
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
@@ -227,7 +230,7 @@ static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandl
 		ret = glimpse_typesystem_typehandler_alloc_instance(handler);
 	int rc = 0;
 	if(handler->init) rc = handler->init(ret->instance, handler->init_data);  /* init it */
-	if(ESUCCESS != rc)  /*if init failed insert the node into available list*/
+	if(GLIMPSE_ESUCCESS != rc)  /*if init failed insert the node into available list*/
 	{
 		ret->next = ret->handler->pool.available_list;
 		ret->handler->pool.available_list = ret;
@@ -301,16 +304,16 @@ static inline GlimpseTypePoolNode_t* glimpse_typesystem_instance_object_get_pool
 static inline int glimpse_typesystem_typehandler_init_instance(void* instance)
 {
 	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
-	if(NULL == node) return EINVAILDARG;
-	int rc = ESUCCESS;
+	if(NULL == node) return GLIMPSE_EINVAILDARG;
+	int rc = GLIMPSE_ESUCCESS;
 	if(node->handler->init) rc = node->handler->init(instance, node->handler->init_data);
 	return rc;
 }
 static inline int glimpse_typesystem_typehandler_fianlize_instance(void* instance)
 {
 	GlimpseTypePoolNode_t* node = glimpse_typesystem_instance_object_get_pool(instance);
-	if(NULL == node) return EINVAILDARG;
-	int rc = ESUCCESS;
+	if(NULL == node) return GLIMPSE_EINVAILDARG;
+	int rc = GLIMPSE_ESUCCESS;
 	if(node->handler->finalize) rc = node->handler->finalize(instance, node->handler->finalize_data);
 	return rc;
 }

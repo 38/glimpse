@@ -1,8 +1,8 @@
-#ifndef __TYPE_API_H__
-#define __TYPE_API_H__
-#include <api.h>
-#include <typesystem.h>
-#include <log.h>
+#ifndef __GLIMPSE_TYPE_API_H__
+#define __GLIMPSE_TYPE_API_H__
+#include <glimpse/api.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/log.h>
 GlimpseAPIData(TypeAPI)
 	//called by plugin
 	GlimpseAPIFunctions

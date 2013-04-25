@@ -1,9 +1,10 @@
-#include <profiler.h>
-#include <log.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <inttypes.h>
+
+#include <glimpse/profiler.h>
+#include <glimpse/log.h>
 static volatile GlimpseProfilerWatcher_t * _glimpse_profiler_watchers[GLIMPSE_PROFILER_MAX_WATCHER];
 static uint32_t _glimpse_profiler_watcher_count = 0;
 static inline const char* _glimpse_profiler_print_table(const char* str, int width)

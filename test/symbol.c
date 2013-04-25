@@ -1,4 +1,4 @@
-#include <symbol.h>
+#include <glimpse/symbol.h>
 #include <stdio.h>
 #include <assert.h>
 int main()

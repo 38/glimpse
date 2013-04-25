@@ -1,4 +1,4 @@
-#include <profiler.h>
+#include <glimpse/profiler.h>
 int main()
 {
 	int i;

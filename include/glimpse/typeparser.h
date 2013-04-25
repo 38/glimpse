@@ -1,7 +1,7 @@
-#ifndef __TYPEPARSER_H__
-#define __TYPEPARSER_H__
-#include <typesystem.h>
-#include <def.h>
+#ifndef __GLIMPSE_TYPEPARSER_H__
+#define __GLIMPSE_TYPEPARSER_H__
+#include <glimpse/typesystem.h>
+#include <glimpse/def.h>
 #ifndef GLIMPSE_MAX_TYPE_ALIAS
 #	define GLIMPSE_MAX_TYPE_ALIAS 10240
 #endif

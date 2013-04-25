@@ -1,8 +1,8 @@
-#ifndef __SCANNER_H__
-#define __SCANNER_H__
-#include <tree.h>
-#include <thread.h>
-#include <def.h>
+#ifndef __GLIMPSE_SCANNER_H__
+#define __GLIMPSE_SCANNER_H__
+#include <glimpse/tree.h>
+#include <glimpse/thread.h>
+#include <glimpse/def.h>
 #ifndef GLIMPSE_SCANNER_MAX_LOG_NUM
 #	define GLIMPSE_SCANNER_MAX_LOG_NUM 1024 /* the max number user can register log */
 #endif

@@ -1,10 +1,10 @@
-#include  <typesystem.h>
-#include <pluginloader.h>
+#include  <glimpse/typesystem.h>
+#include <glimpse/pluginloader.h>
 #include <TypeAPI.h>
 #include <assert.h>
 #include <integer/integer.h>
-#include <vector.h>
-#include <thread.h>
+#include <glimpse/vector.h>
+#include <glimpse/thread.h>
 GlimpseTypeHandler_t* init_handler()
 {
 	GlimpseTypeDesc_t* td = glimpse_typesystem_typedesc_new(sizeof(GlimpseIntegerProperties_t));

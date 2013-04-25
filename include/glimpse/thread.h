@@ -1,9 +1,11 @@
-#ifndef __THREADDATA_H__
-#define __THREADDATA_H__
-#include <future.h>
-#include <stack.h>
-#include <def.h>
+#ifndef __GLIMPSE_THREAD_H__
+#define __GLIMPSE_THREAD_H__
+
 #include <stdint.h>
+
+#include <glimpse/future.h>
+#include <glimpse/stack.h>
+#include <glimpse/def.h>
 typedef struct _glimpse_thread_data{
 #ifdef HANDLER_STACK
 	GlimpseStack_t stack;

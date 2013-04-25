@@ -1,9 +1,10 @@
-#ifndef __VECTOR_H__
-#define __VECTOR_H__
-#include <future.h>
+#ifndef __GLIMPSE_VECTOR_H__
+#define __GLIMPSE_VECTOR_H__
 #include <stdlib.h>
-#include <retval.h>
-#include <def.h>
+
+#include <glimpse/future.h>
+#include <glimpse/retval.h>
+#include <glimpse/def.h>
 #ifndef GLIMPSE_VECTOR_INIT_CAP
 #	define GLIMPSE_VECTOR_INIT_CAP 32
 #endif

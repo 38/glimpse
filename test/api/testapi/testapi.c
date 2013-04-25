@@ -1,5 +1,5 @@
 #include <testapi.h>
-#include <pluginloader.h>
+#include <glimpse/pluginloader.h>
 int add(int a, int b)
 {
 	return a + b;

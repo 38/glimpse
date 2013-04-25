@@ -1,11 +1,13 @@
-#include <pluginloader.h>
 #include <string.h>
 #include <stdio.h>
 #include <dlfcn.h>
-#include <log.h>
-#include <retval.h>
+
 #include <malloc.h>
 #include <fcntl.h>
+
+#include <glimpse/pluginloader.h>
+#include <glimpse/log.h>
+#include <glimpse/retval.h>
 char* glimpse_pluginloader_path[256];
 GlimpseAPIMetaData_t* _glimpse_pluginloader_api_list[MAX_API_VERSION];
 GlimpsePluginHandler_t* _glimpse_pluginloader_plugin_list[MAX_PLUGINS];
@@ -13,11 +15,11 @@ int _glimpse_pluginloader_api_count = 0;
 int _glimpse_pluginloader_plugin_count = 0;
 int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API)
 {
-	if(NULL == API) return EINVAILDARG;
+	if(NULL == API) return GLIMPSE_EINVAILDARG;
 	if(_glimpse_pluginloader_api_count >= MAX_API_VERSION) 
 	{
 		GLIMPSE_LOG_WARNING("too many versions of API registed");
-		return ETOOMANYAPI;
+		return GLIMPSE_ETOOMANYAPI;
 	}
 	_glimpse_pluginloader_api_list[_glimpse_pluginloader_api_count++] = API;
 	if(API->Initialize) 
@@ -27,11 +29,11 @@ int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API)
 		{
 			GLIMPSE_LOG_ERROR("API %s Initilaize failed", API->APIVersion);
 			_glimpse_pluginloader_api_count--;
-			return EUNKNOWN;
+			return GLIMPSE_EUNKNOWN;
 		}
 	}
 	GLIMPSE_LOG_DEBUG("API %s Registered.", API->APIVersion);
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 static GlimpseAPIMetaData_t* _glimpse_pluginloader_find_api_by_version(const char* version)
 {
@@ -85,25 +87,25 @@ int glimpse_pluginloader_set_primary_plugin(const char* name)
 			GlimpsePluginMetaData_t* plugin = _glimpse_pluginloader_plugin_list[i]->MetaData;
 			if(api->OnPrimaryPluginSelected) return api->OnPrimaryPluginSelected(plugin->data);
 		}
-	return ENOTFOUND;
+	return GLIMPSE_ENOTFOUND;
 }
 typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(void);
 static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {
-	int errval = EINVAILDARG;
+	int errval = GLIMPSE_EINVAILDARG;
 	int idx = -1;
 	if(NULL == handler) goto ERR_BEFORE_ENQUEUED;
 	
-	errval = ESYMNOTFOUND;
+	errval = GLIMPSE_ESYMNOTFOUND;
 	GetMetaData_proc proc;
 	proc = (GetMetaData_proc)dlsym(handler->dl_handler, "GetMetaData");
 	if(NULL == proc) goto ERR_BEFORE_ENQUEUED;
 	
-	errval = EUNKNOWN;
+	errval = GLIMPSE_EUNKNOWN;
 	handler->MetaData = proc();
 	if(NULL == handler->MetaData) goto ERR_BEFORE_ENQUEUED;
 
-	errval = EINVAILDARG;
+	errval = GLIMPSE_EINVAILDARG;
 	if(NULL == handler->MetaData->Name || 
 	   NULL == handler->MetaData->APIVersion) 
 	{
@@ -132,7 +134,7 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 		vercode ++;
 		GlimpsePluginVersion min_version;
 		int j, index = 0;
-		errval = EINVALIDVERCODE;
+		errval = GLIMPSE_EINVALIDVERCODE;
 		for(j = 0; j < 3; j ++)
 		{
 			min_version[j] = 0;
@@ -143,7 +145,7 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 			}
 			if(vercode[index]) index ++; 
 		}
-		errval = EDEPEND;
+		errval = GLIMPSE_EDEPEND;
 		GlimpsePluginHandler_t* dep_handler = _glimpse_pluginloader_find_plugin(temp);
 		if(NULL == dep_handler) goto ERR;
 		if(dep_handler->initialized == 2) {/*already initialized*/}
@@ -155,10 +157,10 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 				goto ERR;
 			}
 			errval = _glimpse_pluginloader_initilaize_plugin(dep_handler);
-			if(ESUCCESS != errval) goto ERR;
+			if(GLIMPSE_ESUCCESS != errval) goto ERR;
 		}
 
-		errval = EVERSION;
+		errval = GLIMPSE_EVERSION;
 		for(j = 0; j < 3; j ++)
 			if(dep_handler->MetaData->Version[j] != min_version[j])
 			{
@@ -181,18 +183,18 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 		errval = handler->API->PluginInitialize(handler->MetaData->data);
 	else
 	{
-		errval = EMALFORMEDAPI;
+		errval = GLIMPSE_EMALFORMEDAPI;
 		goto ERR;
 	}
 	
-	if(errval != ESUCCESS) goto ERR;
+	if(errval != GLIMPSE_ESUCCESS) goto ERR;
 
 	handler->initialized = 2;
 	GLIMPSE_LOG_TRACE("Plugin %s@%d.%d.%d has been initialized", handler->MetaData->Name,
 			handler->MetaData->Version[0],
 			handler->MetaData->Version[1],
 			handler->MetaData->Version[2]);
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 ERR:
 	for(i = idx + 1; i < _glimpse_pluginloader_plugin_count; i ++)
 		_glimpse_pluginloader_plugin_list[i-1] = _glimpse_pluginloader_plugin_list[i];
@@ -212,7 +214,7 @@ int glimpse_pluginloader_load_plugin(const char* name)
 	if(handler && handler->initialized == 2)
 	{
 		GLIMPSE_LOG_DEBUG("plugin %s has been loaded previously", name);
-		return ESUCCESS;
+		return GLIMPSE_ESUCCESS;
 	}
 	return _glimpse_pluginloader_initilaize_plugin(handler);
 }

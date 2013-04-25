@@ -1,8 +1,8 @@
-#include <pluginloader.h>
-#include <scanner.h>
-#include <init.h>
+#include <glimpse/pluginloader.h>
+#include <glimpse/scanner.h>
+#include <glimpse/init.h>
 #include <assert.h>
-#include <vector.h>
+#include <glimpse/vector.h>
 #include <integer/integer.h>
 #ifdef GPROF
 #include <google/profiler.h>

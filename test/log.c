@@ -1,4 +1,4 @@
-#include <log.h>
+#include <glimpse/log.h>
 int main()
 {
 	GLIMPSE_LOG_DEBUG("this is a test %d",3);

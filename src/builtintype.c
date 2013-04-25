@@ -1,22 +1,23 @@
-#include <typeflag.h>
-#include <typesystem.h>
-#include <vector.h>
-#include <log.h>
-#include <data.h>
-#include <tree.h>
-#include <thread.h>
 #include <stdio.h>
-#include <stack.h>
-void* glimpse_typeflag_vector_alloc(void* userdata)
+
+#include <glimpse/builtintype.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/vector.h>
+#include <glimpse/log.h>
+#include <glimpse/data.h>
+#include <glimpse/tree.h>
+#include <glimpse/thread.h>
+#include <glimpse/stack.h>
+void* glimpse_builtintype_vector_alloc(void* userdata)
 {
 	return glimpse_vector_new(sizeof(void*));
 }
-int glimpse_typeflag_vector_init(void* data, void* userdata)
+int glimpse_builtintype_vector_init(void* data, void* userdata)
 {
 	glimpse_vector_init((GlimpseVector_t*)data);
 	return 0;
 }
-int glimpse_typeflag_vector_finalize(void* data, void* userdata)
+int glimpse_builtintype_vector_finalize(void* data, void* userdata)
 {
 	int i;
 	GlimpseVector_t* vec = (GlimpseVector_t*) data;
@@ -34,12 +35,12 @@ int glimpse_typeflag_vector_finalize(void* data, void* userdata)
 	}
 	return 0;
 }
-int glimpse_typeflag_vector_free(void* data, void* userdata)  
+int glimpse_builtintype_vector_free(void* data, void* userdata)  
 {
 	glimpse_vector_free((GlimpseVector_t*)data);
 	return 0;
 }
-const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* user_data, void* thread_data)
+const char* glimpse_builtintype_vector_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
 	GlimpseTypeVectorParserParam_t* param = (GlimpseTypeVectorParserParam_t*)user_data;
 	GlimpseTypeHandler_t* handler = param->basetype_handler;
@@ -62,7 +63,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 		else 
 		{
 			instance = *(void**)free_space;
-			if(ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance))  instance = NULL; 
+			if(GLIMPSE_ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance))  instance = NULL; 
 		}
 #else /*LAZY_INSTANCE*/
 		instance = glimpse_typesystem_typehandler_new_instance(handler);
@@ -93,7 +94,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 			return text;
 		}
 		int rc = glimpse_vector_push((GlimpseVector_t*)result, &instance);
-		if(ESUCCESS != rc)
+		if(GLIMPSE_ESUCCESS != rc)
 		{
 			GLIMPSE_LOG_WARNING("failed to insert to vector");
 #ifdef HANDLER_STACK
@@ -117,7 +118,7 @@ const char* glimpse_typeflag_vector_parse(const char* text, void* result, void* 
 #endif /*STRING_SEPERATOR_SUPPORT*/
 	}
 }
-char* glimpse_typeflag_vector_tostring(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
+char* glimpse_builtintype_vector_tostring(GlimpseTypeHandler_t* handler, char* buffer, size_t size)
 {
 	char* p = buffer;
 	p += glimpse_snprintf(p, size - (p - buffer), "Vector{seperator: "
@@ -134,25 +135,25 @@ char* glimpse_typeflag_vector_tostring(GlimpseTypeHandler_t* handler, char* buff
 	p += glimpse_snprintf(p, size - (p - buffer), "}");
 	return p;
 }
-void* glimpse_typeflag_sublog_alloc(void* userdata)
+void* glimpse_builtintype_sublog_alloc(void* userdata)
 {
 	return glimpse_data_instance_new((GlimpseDataModel_t*)userdata);
 }
-int glimpse_typeflag_sublog_free(void* data, void* userdata)
+int glimpse_builtintype_sublog_free(void* data, void* userdata)
 {
 	glimpse_data_instance_free((GlimpseDataInstance_t*)data);
 	return 0;
 }
-int glimpse_typeflag_sublog_init(void* data, void* userdata)
+int glimpse_builtintype_sublog_init(void* data, void* userdata)
 {
 	return glimpse_data_instance_init((GlimpseDataInstance_t*)data);
 }
-int glimpse_typeflag_sublog_finalize(void* data, void* userdata)
+int glimpse_builtintype_sublog_finalize(void* data, void* userdata)
 {
 	glimpse_data_instance_finalize((GlimpseDataInstance_t*)data);
 	return 0;
 }
-const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* user_data, void* thread_data)
+const char* glimpse_builtintype_sublog_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
 	GlimpseParseTree_t* tree = (GlimpseParseTree_t*)user_data;
 	GlimpseThreadData_t* thread = (GlimpseThreadData_t*)thread_data;
@@ -218,7 +219,7 @@ const char* glimpse_typeflag_sublog_parse(const char* text, void* result, void* 
 	}
 	return p;
 }
-static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int level, char* buffer, size_t size, char* key)
+static char* _glimpse_builtintype_sublog_tostring_imp(GlimpseTrieNode_t* node, int level, char* buffer, size_t size, char* key)
 {
 	if(node == NULL) return buffer + glimpse_snprintf(buffer, size, "(nullnode),");
 	char* p = buffer;
@@ -248,14 +249,14 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 		for(n = node->s.child->first; n; n = n->list)
 		{
 			key[s] = n->key;
-			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer),key);
+			char* q = _glimpse_builtintype_sublog_tostring_imp((GlimpseTrieNode_t*)n->value, level + 1, p, size - (p - buffer),key);
 #else
 		int i;
 		for(i = 0; i < 256; i ++)
 		{
 			if(NULL == node->s.child[i]) continue;
 			key[s] = i;
-			char* q = _glimpse_typeflag_sublog_tostring_imp((GlimpseTrieNode_t*)node->s.child[i], level + 1, p, size - (p - buffer),key);
+			char* q = _glimpse_builtintype_sublog_tostring_imp((GlimpseTrieNode_t*)node->s.child[i], level + 1, p, size - (p - buffer),key);
 #endif
 			if(NULL == q) 
 				p += glimpse_snprintf(p, size - (p - buffer), "(undefined),");
@@ -265,13 +266,13 @@ static char* _glimpse_typeflag_sublog_tostring_imp(GlimpseTrieNode_t* node, int 
 		return p;
 	}
 }
-char* glimpse_typeflag_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size)
+char* glimpse_builtintype_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size)
 {
 	char key[1024];
 	if(NULL == type || NULL == buffer) return NULL;
 	char *p = buffer;
 	p += glimpse_snprintf(buffer, size - (p - buffer), "Log{");
-	p = _glimpse_typeflag_sublog_tostring_imp(type->type->param.sublog.tree->root, 0, p, size - (p - buffer),key);
+	p = _glimpse_builtintype_sublog_tostring_imp(type->type->param.sublog.tree->root, 0, p, size - (p - buffer),key);
 	p += glimpse_snprintf(p, size - (p - buffer), "sep_kv:'%c',sep_f:'%c'}", 
 				  type->type->param.sublog.tree->sep_kv,
 				  type->type->param.sublog.tree->sep_f);

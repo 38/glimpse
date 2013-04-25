@@ -1,17 +1,19 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdio.h>
-#include <init.h>
-#include <typesystem.h>
-#include <pluginloader.h>
 #include <stdarg.h>
-#include <typeparser.h>
-#include <scanner.h>
-#include <unistd.h> 
-#include <strpool.h>
 #include <time.h>
-#include <version.h>
+#include <unistd.h>
+
 #include <readline/readline.h>
+
+#include <glimpse/init.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/pluginloader.h>
+#include <glimpse/typeparser.h>
+#include <glimpse/scanner.h>
+#include <glimpse/strpool.h>
+#include <glimpse/version.h>
 #ifndef DEFAULT_PROMPT 
 #	define DEFAULT_PROMPT "Glimpse> "
 #endif
@@ -323,7 +325,7 @@ void glimpse_cli_import(int argc, char** argv)
 	int i;
 	for(i = 0; i < argc; i ++)
 	{
-		if(ESUCCESS != glimpse_pluginloader_load_plugin(argv[i]))
+		if(GLIMPSE_ESUCCESS != glimpse_pluginloader_load_plugin(argv[i]))
 			glimpse_cli_error("failed to import plugin `%s'", argv[i]);
 	}
 }
@@ -359,7 +361,7 @@ void glimpse_cli_define(int argc, char** argv)
 					glimpse_cli_error("Failed to Parse Type %s", argv[i+1]);
 					continue;
 				}
-				if(ESUCCESS != glimpse_tree_insert(tree, argv[i], desc))
+				if(GLIMPSE_ESUCCESS != glimpse_tree_insert(tree, argv[i], desc))
 				{
 					glimpse_cli_error("Failed to Insert the Field %s into Tree", argv[i]);
 					if(!desc->registered)glimpse_typesystem_typedesc_free(desc);
@@ -512,7 +514,7 @@ void glimpse_cli_interactive()
 			usleep(1000);
 			_interval = glimpse_profiler_rdtsc() - _interval;
 		}
-		glimpse_cli_error("%g ms",(end-start)*0.0/_interval);
+		glimpse_cli_error("%g ms",(end-start)*1.0/_interval);
 #endif
 	}
 }

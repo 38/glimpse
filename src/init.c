@@ -1,13 +1,13 @@
-#include <init.h>
-#include <symbol.h>
-#include <typesystem.h>
-#include <def.h>
-#include <log.h>
+#include <glimpse/init.h>
+#include <glimpse/symbol.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/def.h>
+#include <glimpse/log.h>
 /* check types */
-#include <plugin.h>
-#include <typesystem.h>
-#include <data.h>
-#include <address.h>
+#include <glimpse/plugin.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/data.h>
+#include <glimpse/address.h>
 #define _GLIMPSE_CHECK_LAST(type,last) do{\
 	if(sizeof(type) != GLIMPSE_OFFSET_OF(type, last)){\
 		GLIMPSE_LOG_WARNING("`" #type "::" #last "' is not the last member, this may cause problem");\
@@ -42,7 +42,7 @@ int glimpse_init()
 	if(_glimpse_check_types())
 	{
 		GLIMPSE_LOG_FATAL("malformed structures, try to correct the issue above and recompile glimpse");
-		return EUNKNOWN;
+		return GLIMPSE_EUNKNOWN;
 	}
 	else
 		GLIMPSE_LOG_DEBUG("type check passed, no error found");

@@ -1,12 +1,14 @@
-#include <typeparser.h>
-#include <retval.h>
-#include <string.h>
-#include <log.h>
-#include <vector.h>
-#include <tree.h>
-#include <scanner.h>
+
 #include <stdio.h>
-#include <strpool.h>
+#include <string.h>
+
+#include <glimpse/typeparser.h>
+#include <glimpse/retval.h>
+#include <glimpse/log.h>
+#include <glimpse/vector.h>
+#include <glimpse/tree.h>
+#include <glimpse/scanner.h>
+#include <glimpse/strpool.h>
 GlimpseTypeAlias_t _glimpse_typeparser_alias_table[GLIMPSE_MAX_TYPE_ALIAS];
 int _glimpse_typeparser_alias_count = 0;
 static inline GlimpseTypeDesc_t* _glimpse_typeparser_find_alias(const char* name)
@@ -20,17 +22,17 @@ static inline GlimpseTypeDesc_t* _glimpse_typeparser_find_alias(const char* name
 int glimpse_typeparser_alias(GlimpseTypeDesc_t* desc, const char* name)
 {
 	GlimpseTypeHandler_t* handler = glimpse_typesystem_query(desc);
-	if(NULL == handler) return EUNKNOWN;
+	if(NULL == handler) return GLIMPSE_EUNKNOWN;
 	if(NULL != _glimpse_typeparser_find_alias(name))
 	{
 		GLIMPSE_LOG_ERROR("failed to alias name with type, because name %s confilicted", name);
-		return EINVAILDARG;
+		return GLIMPSE_EINVAILDARG;
 	}
 	_glimpse_typeparser_alias_table[_glimpse_typeparser_alias_count].type = handler->type;  /* all handler should be queried */
 	_glimpse_typeparser_alias_table[_glimpse_typeparser_alias_count].name = name;
 	_glimpse_typeparser_alias_count ++;
 	GLIMPSE_LOG_DEBUG("typename `%s' = typedesc at <0x%x>",name,desc);
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 
 static inline void _glimpse_typeparser_process_property(const char* name, const char* key, const char* value, GlimpseTypeDesc_t* desc)

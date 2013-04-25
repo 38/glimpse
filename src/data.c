@@ -1,8 +1,8 @@
-#include <data.h>
-#include <log.h>
-#include <vector.h>
-#include <typesystem.h>
 #include <string.h>
+#include <glimpse/data.h>
+#include <glimpse/log.h>
+#include <glimpse/vector.h>
+#include <glimpse/typesystem.h>
 GlimpseDataModel_t* glimpse_data_model_new()
 {
 	GlimpseDataModel_t* ret = (GlimpseDataModel_t*)malloc(sizeof(GlimpseDataModel_t));
@@ -24,9 +24,9 @@ void glimpse_data_model_free(GlimpseDataModel_t* model)
 
 int glimpse_data_model_insert(GlimpseDataModel_t* model, GlimpseTypeHandler_t* type)
 {
-	if(NULL == model || NULL == type) return EINVAILDARG;
+	if(NULL == model || NULL == type) return GLIMPSE_EINVAILDARG;
 	GlimpseDataMember_t* member = (GlimpseDataMember_t*)malloc(sizeof(GlimpseDataMember_t));
-	if(NULL == member) return EUNKNOWN;
+	if(NULL == member) return GLIMPSE_EUNKNOWN;
 	member->handler = type;
 	if(NULL == model->members) member->idx = 0;
 	else member->idx = model->members->idx + 1;
@@ -57,9 +57,9 @@ void glimpse_data_instance_free(GlimpseDataInstance_t* instance)
 }
 int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
 {
-	if(NULL == instance) return EINVAILDARG;
+	if(NULL == instance) return GLIMPSE_EINVAILDARG;
 	GlimpseDataModel_t* model = instance->model;
-	if(NULL == model) return EINVAILDARG;
+	if(NULL == model) return GLIMPSE_EINVAILDARG;
 	
 	GlimpseDataMember_t* p, *q;
 	for(p = model->members; p; p = p->next)
@@ -67,7 +67,7 @@ int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
 #ifdef LAZY_INSTANCE
 		if(instance->data[p->idx])
 		{
-			if(ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance->data[p->idx]))
+			if(GLIMPSE_ESUCCESS != glimpse_typesystem_typehandler_init_instance(instance->data[p->idx]))
 				goto ERR;
 		}
 		else
@@ -77,7 +77,7 @@ int glimpse_data_instance_init(GlimpseDataInstance_t* instance)
 #endif /*LAZY_INSTANCE*/
 		if(NULL == instance->data[p->idx]) goto ERR;
 	}
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 ERR:
 	for(q = model->members; q && q != p; q = q->next)
 #ifdef LAZY_INSTANCE
@@ -85,7 +85,7 @@ ERR:
 #else /*LAZY_INSTANCE*/
 		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
 #endif /*LAZY_INSTANCE*/
-	return EUNKNOWN;
+	return GLIMPSE_EUNKNOWN;
 }
 void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
 {

@@ -1,5 +1,5 @@
-#include <stack.h>
-#include <log.h>
+#include <glimpse/stack.h>
+#include <glimpse/log.h>
 #ifdef HANDLER_STACK
 void glimpse_stack_print(GlimpseStack_t* stack)
 {

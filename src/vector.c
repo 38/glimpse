@@ -1,8 +1,8 @@
-#include <vector.h>
-#include <log.h>
 #include <string.h>
 #include <malloc.h>
-#include <typesystem.h>
+#include <glimpse/vector.h>
+#include <glimpse/log.h>
+#include <glimpse/typesystem.h>
 GlimpseVector_t* glimpse_vector_new(size_t elem_size)
 {
 	if(0 == elem_size) return NULL;
@@ -40,25 +40,25 @@ void glimpse_vector_free(GlimpseVector_t* vector)
 static int _glimpse_vector_resize(GlimpseVector_t* vector)
 {
 	GLIMPSE_LOG_DEBUG("resizing vector from %d to %d", vector->capacity, vector->capacity * 2);
-	if(NULL == vector) return EINVAILDARG;
-	if(NULL == vector->data) return EINVAILDARG;
+	if(NULL == vector) return GLIMPSE_EINVAILDARG;
+	if(NULL == vector->data) return GLIMPSE_EINVAILDARG;
 	size_t new_capacity = vector->capacity * 2;
 	void* data = realloc(vector->data, new_capacity * vector->elem_size);
-	if(NULL == data) return EUNKNOWN;
+	if(NULL == data) return GLIMPSE_EUNKNOWN;
 	vector->data = data;
 	vector->capacity = new_capacity;
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 int glimpse_vector_push(GlimpseVector_t* vector, void* data)
 {
 	if(vector->size == vector->capacity)
 	{
 		int rc = _glimpse_vector_resize(vector);
-		if(ESUCCESS != rc) return rc;
+		if(GLIMPSE_ESUCCESS != rc) return rc;
 	}
 	void* addr = vector->data + vector->size * vector->elem_size;
 	memcpy(addr, data, vector->elem_size);
 	vector->size ++;
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 

@@ -1,6 +1,6 @@
-#include <log.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <glimpse/log.h>
 void glimpse_log_write(ErrorLevel level, const char* file, const char* function,int line, const char* fmt,...)
 {
 	static const char LevelChar[] = "FEWNITD";

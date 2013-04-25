@@ -1,10 +1,11 @@
-#ifndef __PLUGIN_H__
-#define __PLUGIN_H__
-#include <future.h>
+#ifndef __GLIMPSE_PLUGIN_H__
+#define __GLIMPSE_PLUGIN_H__
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>
-#include <def.h>
+
+#include <glimpse/future.h>
+#include <glimpse/def.h>
 typedef uint8_t GlimpsePluginVersion[3];
 /* define the plugin metadata*/
 typedef struct _glimpse_plugin_metadata_t{

@@ -1,7 +1,7 @@
-#ifndef __LOG_H__
-#define __LOG_H__
-#include <future.h>
-#include <def.h>
+#ifndef __GLIMPSE_LOG_H__
+#define __GLIMPSE_LOG_H__
+#include <glimpse/future.h>
+#include <glimpse/def.h>
 typedef enum {
 	FATAL,
 	ERROR,

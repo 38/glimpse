@@ -1,7 +1,7 @@
-#include <chartable.h>
+#include <glimpse/chartable.h>
 #include <assert.h>
 #include <stdio.h>
-#include <future.h>
+#include <glimpse/future.h>
 int main()
 {
 #ifdef CHAR_HASH_TABLE

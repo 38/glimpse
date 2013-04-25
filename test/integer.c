@@ -1,9 +1,9 @@
-#include <pluginloader.h>
+#include <glimpse/pluginloader.h>
 #include <TypeAPI.h>
 #include <integer/integer.h>
 #include <assert.h>
 #include <time.h>
-#include <thread.h>
+#include <glimpse/thread.h>
 void case0()
 {
 	GlimpseThreadData_t* thread_data = glimpse_thread_data_new();

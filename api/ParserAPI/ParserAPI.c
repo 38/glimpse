@@ -1,46 +1,46 @@
-#include <ParserAPI.h>
-#include <pluginloader.h>
-#include <symbol.h>
-#include <typeparser.h>
-#include <typesystem.h>
-#include <tree.h>
-#include <scanner.h>
-#include <address.h>
 #include <stdarg.h>
-#include <strpool.h>
+#include <ParserAPI.h>
+#include <glimpse/pluginloader.h>
+#include <glimpse/symbol.h>
+#include <glimpse/typeparser.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/tree.h>
+#include <glimpse/scanner.h>
+#include <glimpse/address.h>
+#include <glimpse/strpool.h>
 
 int Glimpse_ParserAPI_PthreadMock(void* data){}
 int Glimpse_ParserAPI_AliasType(const char* type, const char* name)
 {
 	GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(type);
-	if(NULL == desc) return EINVAILDARG;
+	if(NULL == desc) return GLIMPSE_EINVAILDARG;
 	int rc = glimpse_typeparser_alias(desc, name);
-	if(rc != ESUCCESS) glimpse_typesystem_typedesc_free(desc);
+	if(rc != GLIMPSE_ESUCCESS) glimpse_typesystem_typedesc_free(desc);
 	return rc;
 }
 int Glimpse_ParserAPI_CreateLog(const char* name, char sep_kv, char sep_f, ...)
 {
-	if(NULL == name) return EINVAILDARG;
+	if(NULL == name) return GLIMPSE_EINVAILDARG;
 	GlimpseParseTree_t* tree = glimpse_scanner_register_tree(name,sep_f,sep_kv);
-	if(NULL == tree) return EUNKNOWN;
+	if(NULL == tree) return GLIMPSE_EUNKNOWN;
 	va_list ap;
 	va_start(ap, sep_f);
 	char* key;
 	while(key = va_arg(ap, char*))
 	{
 		char* type = va_arg(ap,char*);
-		if(NULL == type) return EINVAILDARG;
+		if(NULL == type) return GLIMPSE_EINVAILDARG;
 		GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(type);
 		if(NULL == desc)
 		{
 			GLIMPSE_LOG_ERROR("can not parse type %s", type);
-			return EINVAILDARG;
+			return GLIMPSE_EINVAILDARG;
 		}
 		int rc = glimpse_tree_insert(tree, key, desc);
-		if(rc != ESUCCESS)
+		if(rc != GLIMPSE_ESUCCESS)
 			GLIMPSE_LOG_WARNING("failed to insert <key=`%s',type=`%s>'", key, type);
 	}
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 } 
 int Glimpse_ParserAPI_PluginInit(void* data)
 {

@@ -1,6 +1,6 @@
-#include <address.h>
-#include <tree.h>
-#include <scanner.h>
+#include <glimpse/address.h>
+#include <glimpse/tree.h>
+#include <glimpse/scanner.h>
 static GlimpseVector_t *_glimpse_address_list = NULL;
 int glimpse_address_init()
 {

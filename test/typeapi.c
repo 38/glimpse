@@ -1,5 +1,5 @@
 #include <TypeAPI.h>
-#include <pluginloader.h>
+#include <glimpse/pluginloader.h>
 int main(int argc, char** argv)
 {
 	Glimpse_TypeAPI_init();

@@ -1,13 +1,15 @@
-#ifndef __TREE_H__
-#define __TREE_H__
-#include <future.h>
-#include <log.h>
-#include <typesystem.h>
+#ifndef __GLIMPSE_TREE_H__
+#define __GLIMPSE_TREE_H__
+
 #include <stdint.h>
-#include <data.h>
-#include <def.h>
+
+#include <glimpse/future.h>
+#include <glimpse/log.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/data.h>
+#include <glimpse/def.h>
 #ifdef CHAR_HASH_TABLE
-#	include <chartable.h>
+#	include <glimpse/chartable.h>
 #endif
 
 typedef struct _glimpse_typedesc GlimpseTypeDesc_t;

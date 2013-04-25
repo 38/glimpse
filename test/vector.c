@@ -1,4 +1,4 @@
-#include <vector.h>
+#include <glimpse/vector.h>
 #include <assert.h>
 int main()
 {

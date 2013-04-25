@@ -1,7 +1,7 @@
-#ifndef __PROFILER_H__
-#define __PROFILER_H__
+#ifndef __GLIMPSE_PROFILER_H__
+#define __GLIMPSE_PROFILER_H__
 #include <stdint.h>
-#include <def.h>
+#include <glimpse/def.h>
 #ifndef GLIMPSE_PROFILER_MAX_WATCHER
 #	define GLIMPSE_PROFILER_MAX_WATCHER 1024
 #endif

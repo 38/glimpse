@@ -1,7 +1,7 @@
-#include <init.h>
-#include <typeparser.h>
+#include <glimpse/init.h>
+#include <glimpse/typeparser.h>
 #include <TypeAPI.h>
-#include <pluginloader.h>
+#include <glimpse/pluginloader.h>
 #include <assert.h>
 #include <integer/integer.h>
 void case0()

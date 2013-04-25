@@ -1,10 +1,10 @@
-#ifndef __SRC_PLUGIN_H__
-#define __SRC_PLUGIN_H__
-#include <future.h>
-#include <plugin.h>
-#include <api.h>
+#ifndef __GLIMPSE_PLUGINLOADER_H__
+#define __GLIMPSE_PLUGINLOADER_H__
 #include <stdint.h>
-#include <def.h>
+#include <glimpse/future.h>
+#include <glimpse/plugin.h>
+#include <glimpse/api.h>
+#include <glimpse/def.h>
 /* define how many versions of API dose the framework support */
 #ifndef MAX_API_VERSION
 #	define MAX_API_VERSION 16

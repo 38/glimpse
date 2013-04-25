@@ -1,8 +1,9 @@
-#include <symbol.h>
 #include <stdint.h>
 #include <string.h>
 #include <malloc.h>
-#include <log.h>
+
+#include <glimpse/symbol.h>
+#include <glimpse/log.h>
 /* structure that used to store symbols */
 typedef struct _sym{
 	/* a group of hash functions, which reduces the string compare for find */
@@ -73,10 +74,10 @@ static _sym* _glimpse_symbol_findsym(const char* symname, uint32_t* h)
 static int _glimpse_symbol_insertsym(const char* symname, void* address)
 {
 	uint32_t h[4];
-	if(_glimpse_symbol_findsym(symname, h) != NULL) return EDUPSYMBOL;
+	if(_glimpse_symbol_findsym(symname, h) != NULL) return GLIMPSE_EDUPSYMBOL;
 	int idx = h[0]%GLIMPSE_SYMBOL_MAX_SYMBOL_NUMBER;
 	_sym *tmp = (_sym*)malloc(sizeof(_sym));
-	if(NULL == tmp) return EUNKNOWN;
+	if(NULL == tmp) return GLIMPSE_EUNKNOWN;
 	tmp->hash[0] = h[0];
 	tmp->hash[1] = h[1];
 	tmp->hash[2] = h[2];
@@ -85,7 +86,7 @@ static int _glimpse_symbol_insertsym(const char* symname, void* address)
 	tmp->address = address;
 	tmp->next = _glimpse_symbol_symtable[idx];
 	_glimpse_symbol_symtable[idx] = tmp;
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 int glimpse_symbol_exportsymbol(const char* symname, void* address)
 {

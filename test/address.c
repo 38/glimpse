@@ -1,11 +1,11 @@
-#include <address.h>
-#include <scanner.h>
-#include <pluginloader.h>
-#include <vector.h>
+#include <glimpse/address.h>
+#include <glimpse/scanner.h>
+#include <glimpse/pluginloader.h>
+#include <glimpse/vector.h>
 #include <integer/integer.h>
-#include <init.h>
+#include <glimpse/init.h>
 #include <TypeAPI.h>
-#include <typeparser.h>
+#include <glimpse/typeparser.h>
 #include <assert.h>
 #ifdef GPROF
 #include <google/profiler.h>

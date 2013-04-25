@@ -1,4 +1,4 @@
-#include <future.h>
+#include <glimpse/future.h>
 #define Y "=yes"
 #define N "=no"
 const char* glimpse_name = "glimpse";

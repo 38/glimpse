@@ -1,8 +1,10 @@
-#ifndef __API_H__
-#define __API_H__
-#include <future.h>
+#ifndef __GLIMPSE_API_H__
+#define __GLIMPSE_API_H__
+
 #include <stdint.h>
-#include <def.h>
+
+#include <glimpse/future.h>
+#include <glimpse/def.h>
 /* metadata of APIs */
 typedef struct _glimpse_api_metadata_t{
 	const char* APIVersion;  /*Version of API*/
@@ -21,5 +23,5 @@ typedef struct _glimpse_api_metadata_t{
 #define GlimpseAPIFunctionsEnd }api_functions;
 #define GlimpsePluginFunctions struct {
 #define GlimpsePluginFunctionsEnd }plugin_functions;
-#include <plugin.h>
+#include <glimpse/plugin.h>
 #endif

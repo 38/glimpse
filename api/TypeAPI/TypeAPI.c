@@ -1,16 +1,16 @@
 #include <TypeAPI.h>
-#include <pluginloader.h>
-#include <symbol.h>
-#include <strpool.h>
-#include <typeparser.h>
-#include <typesystem.h>
+#include <glimpse/pluginloader.h>
+#include <glimpse/symbol.h>
+#include <glimpse/strpool.h>
+#include <glimpse/typeparser.h>
+#include <glimpse/typesystem.h>
 int Glimpse_TypeAPI_PthreadMock(void* data){}
 int Glimpse_TypeAPI_AliasType(const char* type, const char* name)
 {
 	GlimpseTypeDesc_t* desc = glimpse_typeparser_parse_type(type);
-	if(NULL == desc) return EINVAILDARG;
+	if(NULL == desc) return GLIMPSE_EINVAILDARG;
 	int rc = glimpse_typeparser_alias(desc, name);
-	if(rc != ESUCCESS) glimpse_typesystem_typedesc_free(desc);
+	if(rc != GLIMPSE_ESUCCESS) glimpse_typesystem_typedesc_free(desc);
 	return rc;
 }
 int Glimpse_TypeAPI_PluginInit(void* data)
@@ -34,7 +34,7 @@ int Glimpse_TypeAPI_PluginInit(void* data)
 	meta->api_functions.StringDuplicate = glimpse_strpool_new;
 	meta->api_functions.TypeAlias = Glimpse_TypeAPI_AliasType;
 	if(meta->plugin_functions.OnInitialized) return meta->plugin_functions.OnInitialized();
-	return 0;
+	return GLIMPSE_ESUCCESS;
 }
 
 GlimpseAPIMetaData_t TypeAPI_MetaData = {

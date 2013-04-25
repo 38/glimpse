@@ -1,6 +1,7 @@
-#include <thread.h>
-#include <malloc.h>
 #include <string.h>
+#include <malloc.h>
+
+#include <glimpse/thread.h>
 GlimpseThreadData_t* glimpse_thread_data_new()
 {
 	GlimpseThreadData_t* ret = (GlimpseThreadData_t*)malloc(sizeof(GlimpseThreadData_t));

@@ -1,10 +1,12 @@
-#include <scanner.h>
-#include <typesystem.h>
 #include <string.h>
 #include <malloc.h>
-#include <thread.h>
-#include <data.h>
-#include <retval.h>
+
+#include <glimpse/scanner.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/thread.h>
+#include <glimpse/data.h>
+#include <glimpse/retval.h>
+
 GlimpseScanner_t _glimpse_scanner_instance;  /* internal variable, does not expose to others */
 const char* glimpse_scanner_parse(const char* text, GlimpseThreadData_t* thread_data)    /* parse a log the upper most function */
 {
@@ -78,7 +80,7 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 	if(-1 == idx)
 	{
 		GLIMPSE_LOG_ERROR("can not find the tree named %s",name);
-		return EINVAILDARG;
+		return GLIMPSE_EINVAILDARG;
 	}
 	GlimpseTypeDesc_t* desc = glimpse_typesystem_typedesc_new(0);
 	desc->builtin_type = GLIMPSE_TYPE_BUILTIN_SUBLOG;
@@ -87,7 +89,7 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 	if(NULL == _glimpse_scanner_instance.default_handler)
 	{
 		GLIMPSE_LOG_ERROR("failed to query the type system");
-		return EUNKNOWN;
+		return GLIMPSE_EUNKNOWN;
 	}
 #ifdef LAZY_INSTANCE
 	if(_glimpse_scanner_instance.data_instance) 
@@ -95,7 +97,7 @@ int glimpse_scanner_set_defualt_tree(const char* name)  /* set the log you want 
 	_glimpse_scanner_instance.data_instance = glimpse_typesystem_typehandler_new_instance(_glimpse_scanner_instance.default_handler);
 #endif
 	GLIMPSE_LOG_DEBUG("defualt log parser has been selected");
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 GlimpseParseTree_t* glimpse_scanner_get_default_tree()
 {

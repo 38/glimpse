@@ -1,13 +1,15 @@
 #ifndef __TYPESYSTEM_C__
 #	define __TYPESYSTEM_C__
 #endif
-#include <typesystem.h>
-#include <log.h>
-#include <retval.h>
 #include <string.h>
-#include <vector.h>
-#include <typeflag.h>
 #include <stdio.h>
+
+#include <glimpse/typesystem.h>
+#include <glimpse/log.h>
+#include <glimpse/retval.h>
+#include <glimpse/vector.h>
+#include <glimpse/builtintype.h>
+
 static GlimpseTypeGroup_t *_glimpse_typesystem_typegroup_list[TYPEDESC_MAX_TYPEGROUPS];
 static int _glimpse_typesystem_typegroup_count = 0;
 static GlimpseVector_t* _glimpse_typesystem_known_handler;
@@ -41,17 +43,17 @@ void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc)
 int glimpse_typesystem_typedesc_set_property(GlimpseTypeDesc_t* desc ,const char* key, const char* value)
 {
 	int i;
-	if(NULL == desc || NULL == key || NULL == value) return EINVAILDARG;
-	if(desc->builtin_type != GLIMPSE_TYPE_BUILTIN_NONE) return ESUCCESS;
+	if(NULL == desc || NULL == key || NULL == value) return GLIMPSE_EINVAILDARG;
+	if(desc->builtin_type != GLIMPSE_TYPE_BUILTIN_NONE) return GLIMPSE_ESUCCESS;
 	for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
 		if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, desc->param.normal.group) == 0)
 		{
-			int rc = EINVAILDARG;
+			int rc = GLIMPSE_EINVAILDARG;
 			if(desc->param.normal.group) 
 				rc = _glimpse_typesystem_typegroup_list[i]->set_property(key, value, desc->properties);
 			return rc;
 		}
-	return ENOTFOUND;
+	return GLIMPSE_ENOTFOUND;
 }
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type)
 {
@@ -65,21 +67,21 @@ GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type)
 int glimpse_typesystem_register_typegroup(GlimpseTypeGroup_t* typegroup)
 {
 	int i;
-	if(NULL == typegroup || NULL == typegroup->resolve || NULL == typegroup->name) return EINVAILDARG;
+	if(NULL == typegroup || NULL == typegroup->resolve || NULL == typegroup->name) return GLIMPSE_EINVAILDARG;
 	if(_glimpse_typesystem_typegroup_count >= TYPEDESC_MAX_TYPEGROUPS)
 	{
 		GLIMPSE_LOG_ERROR("Too many typegourps registered");
-		return ETOOMANYTG;
+		return GLIMPSE_ETOOMANYTG;
 	}
 	for(i = 0; i < _glimpse_typesystem_typegroup_count; i ++)
 		if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, typegroup->name) == 0) 
 		{
 			GLIMPSE_LOG_ERROR("conflicted typegroup name %s",typegroup->name);
-			return EUNKNOWN;
+			return GLIMPSE_EUNKNOWN;
 		}
 	_glimpse_typesystem_typegroup_list[_glimpse_typesystem_typegroup_count++] = typegroup;
 	GLIMPSE_LOG_DEBUG("typegroup %s registered", typegroup->name);
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 size_t glimpse_typesystem_sizeof_typegroup_prop(const char* name)
 {
@@ -162,12 +164,12 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 			handler.free_data = type->param.vector.basetype;
 			handler.alloc_data = NULL;
 			handler.finalize_data = type->param.vector.basetype;
-			handler.parse = glimpse_typeflag_vector_parse;
-			handler.init = glimpse_typeflag_vector_init;
-			handler.free = glimpse_typeflag_vector_free;
-			handler.alloc = glimpse_typeflag_vector_alloc;
-			handler.finalize = glimpse_typeflag_vector_finalize;
-			handler.tostring = glimpse_typeflag_vector_tostring;
+			handler.parse = glimpse_builtintype_vector_parse;
+			handler.init = glimpse_builtintype_vector_init;
+			handler.free = glimpse_builtintype_vector_free;
+			handler.alloc = glimpse_builtintype_vector_alloc;
+			handler.finalize = glimpse_builtintype_vector_finalize;
+			handler.tostring = glimpse_builtintype_vector_tostring;
 			break;
 ERR_VEC:
 			if(handler.vector_parser_param[0]) free(handler.vector_parser_param[0]);
@@ -180,12 +182,12 @@ ERR_VEC:
 			handler.init_data = NULL;
 			handler.free_data = NULL;
 			handler.finalize_data = NULL;
-			handler.parse = glimpse_typeflag_sublog_parse;
-			handler.alloc = glimpse_typeflag_sublog_alloc;
-			handler.free  = glimpse_typeflag_sublog_free;
-			handler.init  = glimpse_typeflag_sublog_init;
-			handler.finalize = glimpse_typeflag_sublog_finalize;
-			handler.tostring = glimpse_typeflag_sublog_tostring;
+			handler.parse = glimpse_builtintype_sublog_parse;
+			handler.alloc = glimpse_builtintype_sublog_alloc;
+			handler.free  = glimpse_builtintype_sublog_free;
+			handler.init  = glimpse_builtintype_sublog_init;
+			handler.finalize = glimpse_builtintype_sublog_finalize;
+			handler.tostring = glimpse_builtintype_sublog_tostring;
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 			//TODO: handler for map 
@@ -195,7 +197,7 @@ ERR_VEC:
 				if(strcmp(_glimpse_typesystem_typegroup_list[i]->name, type->param.normal.group) == 0)
 				{
 					int ret = _glimpse_typesystem_typegroup_list[i]->resolve(type, &handler);
-					if(ESUCCESS == ret) break;
+					if(GLIMPSE_ESUCCESS == ret) break;
 				}
 			if(i == _glimpse_typesystem_typegroup_count) 
 			{
@@ -208,7 +210,7 @@ ERR_VEC:
 	}
 	
 	int rc = glimpse_vector_push(_glimpse_typesystem_known_handler, &handler);
-	if(ESUCCESS != rc) return NULL;
+	if(GLIMPSE_ESUCCESS != rc) return NULL;
 	type->registered = 1;
 	/* print log */
 	char buffer[1024];
@@ -285,7 +287,7 @@ void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handle
 		free(ret);
 		return NULL;
 	}
-	if(ESUCCESS != glimpse_typesystem_instance_object_alias(ret->instance, ret))
+	if(GLIMPSE_ESUCCESS != glimpse_typesystem_instance_object_alias(ret->instance, ret))
 	{
 		GLIMPSE_LOG_ERROR("memory returned by alloc is not a valid type instance object");
 		free(ret);
@@ -308,8 +310,8 @@ int glimpse_typesystem_init()
 {
 	_glimpse_typesystem_known_handler = glimpse_vector_new(sizeof(GlimpseTypeHandler_t));
 	if(NULL == _glimpse_typesystem_known_handler) 
-		return EUNKNOWN;
-	return ESUCCESS;
+		return GLIMPSE_EUNKNOWN;
+	return GLIMPSE_ESUCCESS;
 }
 int glimpse_typesystem_cleanup()
 {
@@ -324,7 +326,7 @@ int glimpse_typesystem_cleanup()
 		glimpse_typesystem_typedesc_free(type);
 	}
 	glimpse_vector_free(_glimpse_typesystem_known_handler);
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 void* glimpse_typesystem_instance_object_alloc(size_t size)
 {
@@ -342,11 +344,11 @@ void glimpse_typesystem_instance_object_free(void* data)
 }
 int glimpse_typesystem_instance_object_alias(void* data, GlimpseTypePoolNode_t* pool_obj)
 {
-	if(!glimpse_typesystem_instance_object_check(data)) return EINVAILDARG;
-	if(NULL == pool_obj) return EINVAILDARG;
+	if(!glimpse_typesystem_instance_object_check(data)) return GLIMPSE_EINVAILDARG;
+	if(NULL == pool_obj) return GLIMPSE_EINVAILDARG;
 	GlimpseTypeInstanceObject_t* ret = (GlimpseTypeInstanceObject_t*)((char*)data - sizeof(GlimpseTypeInstanceObject_t));
 	ret->pool_obj = pool_obj;
-	return ESUCCESS;
+	return GLIMPSE_ESUCCESS;
 }
 #ifdef THREAD_SAFE
 int glimpse_typesystem_instance_object_lock(void* data)

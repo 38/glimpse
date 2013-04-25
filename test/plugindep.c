@@ -1,4 +1,4 @@
-#include <pluginloader.h>
+#include <glimpse/pluginloader.h>
 #include <testapi.h>
 int main(int argc, char** argv)
 {

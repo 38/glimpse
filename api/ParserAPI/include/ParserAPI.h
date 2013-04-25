@@ -1,9 +1,11 @@
-#ifndef __PARSER_API_H__
-#define __PARSER_API_H__
-#include <api.h>
-#include <log.h>
-#include <address.h>
-#include <scanner.h>
+#ifndef __GLIMPSE_PARSER_API_H__
+#define __GLIMPSE_PARSER_API_H__
+#include <glimpse/future.h>
+#include <glimpse/def.h>
+#include <glimpse/api.h>
+#include <glimpse/log.h>
+#include <glimpse/address.h>
+#include <glimpse/scanner.h>
 GlimpseAPIData(ParserAPI)
 	/*APIs*/
 	GlimpseAPIFunctions

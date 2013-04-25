@@ -1,8 +1,10 @@
-#ifndef __DEF_H__
-#define __DEF_H__
-#include <future.h>
+#ifndef __GLIMPSE_DEF_H__
+#define __GLIMPSE_DEF_H__
 #include <stdio.h>
 #include <stdarg.h>
+
+#include <glimpse/future.h>
+
 /* some macro defined in this file */
 #define GLIMPSE_OFFSET_OF(type,member) ((size_t)&(((type*)0)->member))
 static inline int glimpse_snprintf(char* buffer, size_t size, const char* fmt, ...)

@@ -1,11 +1,13 @@
-#ifndef __ADDRESSING_H__
-#define __ADDRESSING_H__
-#include <future.h>
-#include <typesystem.h>
-#include <data.h>
-#include <vector.h>
+#ifndef __GLIMPSE_ADDRESSING_H__
+#define __GLIMPSE_ADDRESSING_H__
 #include <stdarg.h>
-#include <def.h>
+
+#include <glimpse/future.h>
+#include <glimpse/def.h>
+#include <glimpse/typesystem.h>
+#include <glimpse/data.h>
+#include <glimpse/vector.h>
+
 #ifndef GLIMPSE_MAX_ADDRESS_OPS
 #	define GLIMPSE_MAX_ADDRESS_OPS 64
 #endif

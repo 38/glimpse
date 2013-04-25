@@ -1,4 +1,4 @@
-#include <strpool.h>
+#include <glimpse/strpool.h>
 #include <assert.h>
 int main()
 {
