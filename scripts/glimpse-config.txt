@@ -1,10 +1,30 @@
 #!PYTHON_INTERPRETER_PATH
 import sys
 import argparse
+order=["-fPIC","-shared","-I","-L","-l","-lglimpse","-ldl","-lpthread"]
+def match(a):
+	max_idx = -1
+	max_val = 0
+	idx = -1
+	for x in order:
+		idx += 1
+		if len(x) > len(a): continue
+		if a[:len(x)] == x and max_val < len(x):
+			max_idx = idx
+			max_val = len(x)
+	return max_idx
+def compare(a,b):
+	ida = match(a)
+	idb = match(b)
+	if ida > idb : return 1
+	elif ida < idb: return -1
+	if a > b: return 1
+	if a < b: return -1
+	return 0
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("package", metavar = "Pacakge", type=str, nargs = '+', help = "glimpse/plugin/APIName")
-	parser.add_argument("--cflags", action = 'store_true')
+  	parser.add_argument("--cflags", action = 'store_true')
 	parser.add_argument("--libs", action = 'store_true')
 	parser.add_argument("--plugin", action = 'store_true')
 	res = parser.parse_args()
@@ -20,7 +40,15 @@ if __name__ == "__main__":
 			if res.cflags: s += "-IGLIMPSE_INCLUDE_PATH "
 		else:
 			if res.libs  : 
-				s += "-LGLIMPSE_INCLUDE_PATH "
-				if not res.plugin: s += "-l%s "%res.package[0]
+				s += "-LGLIMPSE_LIBRARY_PATH "
+				if not res.plugin: s += "-l%s "%pack
 			if res.cflags: s += "-IGLIMPSE_INCLUDE_PATH -IGLIMPSE_INCLUDE_PATH/%s "%pack
-	print s
+	s = s.split()
+	s.sort(compare)
+	res = ""
+	prev = ""
+	for i in s:
+		if i == prev: continue
+		res += i + " " 
+		prev = i
+	print res

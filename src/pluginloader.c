@@ -70,29 +70,45 @@ static GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* nam
 		if(strcmp(_glimpse_pluginloader_plugin_list[i]->MetaData->Name, name) == 0)
 			return _glimpse_pluginloader_plugin_list[i];
 	GlimpsePluginHandler_t* ret = (GlimpsePluginHandler_t*)malloc(sizeof(GlimpsePluginHandler_t));
+	char path[1024];
 	if(NULL == ret) goto ERR;
 	ret->MetaData = NULL;
 	ret->dl_handler = NULL;
 	ret->API = NULL;
+	ret->conf = NULL;
 	ret->index = -1;
 	ret->initialized = 0;
 	for(i = 0; glimpse_pluginloader_path[i]; i ++)
 	{
-		snprintf(ret->path, sizeof(ret->path), "%s/lib%s.so", glimpse_pluginloader_path[i], name);
-		if(0 == access(ret->path, R_OK))
+		snprintf(path, sizeof(path), "%s/lib%s.so", glimpse_pluginloader_path[i], name);
+		if(0 == access(path, R_OK))
 		{
-			if((ret->dl_handler = dlopen(ret->path, RTLD_NOW)))
+			if((ret->dl_handler = dlopen(path, RTLD_NOW)))
 			{
-				GLIMPSE_LOG_TRACE("using %s as plugin %s", ret->path, name);
+				GLIMPSE_LOG_TRACE("using %s as plugin %s", path, name);
 				return ret;
 			}
 			else
 				GLIMPSE_LOG_DEBUG("%s", dlerror());
 		}
-		snprintf(ret->path, sizeof(ret->path), "%s/plugin_%s.conf", glimpse_pluginloader_path[i], name);
-		if(0 == access(ret->path, R_OK))
+		snprintf(path, sizeof(path), "%s/plugin_%s.conf", glimpse_pluginloader_path[i], name);
+		if(0 == access(path, R_OK))
 		{
-			//TODO parse conf file
+			char buf[1024];
+			if(ret->conf = fopen(path,"r"))
+			{
+				if(NULL != fgets(buf, sizeof(buf), ret->conf))
+				{
+					int len = strlen(buf);
+					while(len && buf[len-1] == '\n') 
+						buf[--len] = 0;
+					if(ret->dl_handler = dlopen(buf, RTLD_NOW))
+					{
+						GLIMPSE_LOG_TRACE("using %s as plugin %s", path, name);
+						return ret;
+					}
+				}
+			}
 		}
 	}
 ERR:
@@ -112,7 +128,7 @@ int glimpse_pluginloader_set_primary_plugin(const char* name)
 		}
 	return GLIMPSE_ENOTFOUND;
 }
-typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(const char* path);
+typedef GLIMPSE_PLUGIN_GETMETADATA_PROTOTYPE((*GetMetaData_proc));
 static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {
 	int errval = GLIMPSE_EINVAILDARG;
@@ -125,7 +141,8 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 	if(NULL == proc) goto ERR_BEFORE_ENQUEUED;
 	
 	errval = GLIMPSE_EUNKNOWN;
-	handler->MetaData = proc(handler->path);
+	handler->MetaData = proc(handler->conf);
+	if(handler->conf) fclose(handler->conf);
 	if(NULL == handler->MetaData) goto ERR_BEFORE_ENQUEUED;
 
 	errval = GLIMPSE_EINVAILDARG;

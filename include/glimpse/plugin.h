@@ -22,6 +22,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <glimpse/future.h>
 #include <glimpse/def.h>
@@ -49,6 +50,10 @@ typedef struct _glimpse_plugin_metadata_t{
 #	define GLIMPSE_META_HEADER
 #	define GLIMPSE_META_FOOTER
 #endif 
+
+/* define the prototype of GetMetaData */
+#define GLIMPSE_PLUGIN_GETMETADATA_PROTOTYPE(name) GlimpsePluginMetaData_t* name(FILE* conf)
+
 /* Used for the begining of the PluginMetaData section 
  * The Macro WITH_PRIVATE_DATA are used for plugin to support
  * for private data
@@ -57,7 +62,7 @@ typedef struct _glimpse_plugin_metadata_t{
 #	define GlimpsePluginMetaData(APIName, PrivateData) \
 		GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
 		GLIMPSE_META_HEADER \
-		GlimpsePluginMetaData_t* GetMetaData(const char* path){\
+		GLIMPSE_PLUGIN_GETMETADATA_PROTOTYPE(GetMetaData){\
 			if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
 			GlimpsePluginMetaData_t* ret = \
 				(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
@@ -69,7 +74,7 @@ typedef struct _glimpse_plugin_metadata_t{
 #	define GlimpsePluginMetaData(APIName) \
 		GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
 		GLIMPSE_META_HEADER \
-		GlimpsePluginMetaData_t* GetMetaData(const char* path){\
+		GLIMPSE_PLUGIN_GETMETADATA_PROTOTYPE(GetMetaData){\
 			if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
 			GlimpsePluginMetaData_t* ret = \
 				(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\

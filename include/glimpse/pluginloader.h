@@ -20,6 +20,8 @@
 #ifndef __GLIMPSE_PLUGINLOADER_H__
 #define __GLIMPSE_PLUGINLOADER_H__
 #include <stdint.h>
+#include <stdio.h>
+
 #include <glimpse/future.h>
 #include <glimpse/plugin.h>
 #include <glimpse/api.h>
@@ -41,7 +43,7 @@ typedef struct _glimpse_plugin_handler{
 	int32_t  initialized;
 	GlimpsePluginMetaData_t* MetaData;
 	GlimpseAPIMetaData_t* API;
-	char path[1024]; /* the path of plugin */
+	FILE* conf;
 	void* dl_handler;
 }GlimpsePluginHandler_t;
 
