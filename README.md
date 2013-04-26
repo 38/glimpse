@@ -1,6 +1,9 @@
-Glimpse
 
-How to build?
+Glimpse
+=======
+A generic,high-performance key-value log processing framework written in C.
+
+#How to build?
 
 	1) run `cmake .' to generate Makefile
 
@@ -10,12 +13,7 @@ How to build?
 
 After you build Glimpse, you can type 'make install' to install glimpse onto your computer.
 
-If you want to remove Glimpse, run the script 'scripts/uninstall.sh'
-
-#Try Glimpse
-=======
-
-A generic,high-performance key-value log processing framework written in C.
+If you want to remove Glimpse, run the script 'scripts/uninstall.sh ${INSTALL_PREFIX}'
 
 #Build Glimpse
 
@@ -24,7 +22,8 @@ prequisite:
 	cmake
 
 	libreadline
-
+	
+#Try Glimpse
 
 You can try the framework with the shell, glimpse-cli.
 
