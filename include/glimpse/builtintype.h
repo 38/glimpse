@@ -22,6 +22,12 @@
 #include <glimpse/future.h>
 #include <glimpse/typesystem.h>
 #include <glimpse/def.h>
+
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 /* interfaces for process log,vector,map as normal type */
 
 /* vector interface */
@@ -45,4 +51,9 @@ char* glimpse_builtintype_sublog_tostring(GlimpseTypeHandler_t* type, char* buff
 int glimpse_builtintype_vector_cleanup(void* data, void* userdata);
 int glimpse_builtintype_sublog_cleanup(void* data, void* userdata);
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

@@ -21,7 +21,13 @@
 #define __GLIMPSE_LOG_H__
 #include <glimpse/future.h>
 #include <glimpse/def.h>
-typedef enum {
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+typedef enum 
+{
 	FATAL,
 	ERROR,
 	WARNING,
@@ -78,4 +84,9 @@ void glimpse_log_write(ErrorLevel level, const char* file, const char* function,
 #else
 #	define GLIMPSE_LOG_DEBUG(...)
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

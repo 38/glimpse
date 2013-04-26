@@ -297,7 +297,7 @@ void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler)
 	//for vector we does not need to free all element, because it will be done with other handler
 	//because all handler are allocated in _glimpse_typesystem_known_handler, we does not need free them
 }
-void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler)
+GlimpseTypePoolNode_t* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler)
 {
 	GlimpseTypePoolNode_t* ret;
 	if(!handler->alloc) return NULL;

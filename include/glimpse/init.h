@@ -21,6 +21,16 @@
 #define __GLIMPSE_INIT_H__
 #include <glimpse/future.h>
 #include <glimpse/def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 int glimpse_init(void);
 void glimpse_cleanup(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

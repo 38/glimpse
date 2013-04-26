@@ -25,6 +25,11 @@
 
 #include <glimpse/future.h>
 #include <glimpse/def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 typedef uint8_t GlimpsePluginVersion[3];
 /* define the plugin metadata*/
 typedef struct _glimpse_plugin_metadata_t{
@@ -44,24 +49,57 @@ typedef struct _glimpse_plugin_metadata_t{
 #	define GLIMPSE_META_HEADER
 #	define GLIMPSE_META_FOOTER
 #endif 
-#define GlimpsePluginMetaData(APIName) GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
-GLIMPSE_META_HEADER \
-GlimpsePluginMetaData_t* GetMetaData(void){\
-	if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
-	GlimpsePluginMetaData_t* ret = \
-		(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
-		memset(ret, 0, sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
-	if(NULL == ret) return NULL;\
-	ret->APIVersion = #APIName;
+/* Used for the begining of the PluginMetaData section 
+ * The Macro WITH_PRIVATE_DATA are used for plugin to support
+ * for private data
+ */
+#ifdef WITH_PRIVATE_DATA 
+#	define GlimpsePluginMetaData(APIName, PrivateData) \
+		GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
+		GLIMPSE_META_HEADER \
+		GlimpsePluginMetaData_t* GetMetaData(const char* path){\
+			if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
+			GlimpsePluginMetaData_t* ret = \
+				(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
+				memset(ret, 0, sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName) + sizeof(PrivateData));\
+			if(NULL == ret) return NULL;\
+			ret->APIVersion = #APIName;
+#	define GlimpsePluginGetPrivateData(APIName, type) ((type*)(((GlimpseAPIProc##APIName*)_glimpse_plugin_metadata->data)+1))
+#else
+#	define GlimpsePluginMetaData(APIName) \
+		GlimpsePluginMetaData_t* _glimpse_plugin_metadata = NULL;\
+		GLIMPSE_META_HEADER \
+		GlimpsePluginMetaData_t* GetMetaData(const char* path){\
+			if(_glimpse_plugin_metadata) return _glimpse_plugin_metadata;\
+			GlimpsePluginMetaData_t* ret = \
+				(GlimpsePluginMetaData_t*)malloc(sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
+				memset(ret, 0, sizeof(GlimpsePluginMetaData_t) + sizeof(GlimpseAPIProc##APIName));\
+			if(NULL == ret) return NULL;\
+			ret->APIVersion = #APIName;
+#endif
 /* Indicates the end of Metadata Section */
 #define GlimpsePluginEndMetaData return _glimpse_plugin_metadata = ret;} GLIMPSE_META_FOOTER
+/* Define the name of Plugin */
 #define GlimpsePluginName(name) ret->Name = name
+/* Define the Version of Version*/
 #define GlimpsePluginVersion(major,minor,rev) ret->Version[0] = major;\
 	ret->Version[1] = minor;\
 	ret->Version[2] = rev;
+/* Begining the dependency section */
 #define GlimpsePluginDependence static char* dependence[] = {
+/* End of Dependecy section */
 #define GlimpsePluginEndDependence NULL};ret->Dependency = dependence;
+/* Set a API callback */
 #define GlimpsePluginAPICallBack(APIName,Name) ((GlimpseAPIProc##APIName*)ret->data)->plugin_functions.Name 
+/* Invoke a API call */
 #define GlimpseAPICall(APIName,Name, args...) (((GlimpseAPIProc##APIName*)_glimpse_plugin_metadata->data)->api_functions.Name(args))
+
+/* previously declaration of meta_data */
+
 extern GlimpsePluginMetaData_t* _glimpse_plugin_metadata;
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

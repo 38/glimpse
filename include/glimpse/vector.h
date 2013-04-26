@@ -24,6 +24,11 @@
 #include <glimpse/future.h>
 #include <glimpse/retval.h>
 #include <glimpse/def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef GLIMPSE_VECTOR_INIT_CAP
 #	define GLIMPSE_VECTOR_INIT_CAP 32
 #endif
@@ -56,6 +61,9 @@ static inline void* glimpse_vector_next_free_space(GlimpseVector_t* vector)
 {
 	if(vector->size < vector->max_size) return (void*)(vector->data + vector->elem_size * vector->size);
 	else return NULL;
+}
+#endif
+#ifdef __cplusplus
 }
 #endif
 #endif

@@ -27,6 +27,10 @@
 #include <glimpse/data.h>
 #include <glimpse/vector.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef GLIMPSE_MAX_ADDRESS_OPS
 #	define GLIMPSE_MAX_ADDRESS_OPS 64
 #endif
@@ -64,10 +68,10 @@ typedef struct _glimpse_address_operations{
 	enum {
 		GLIMPSE_ADDRESSING_TYPE_LOG,
 		GLIMPSE_ADDRESSING_TYPE_VEC
-	} type:1;
+	} type:1;   /* Addressing type , inside a log or a vector */
 	union{
 		struct{
-			GlimpseDataOffset_t offset;
+			GlimpseDataOffset_t offset; /* The data offset inside a data-instance */
 		} log;
 		struct{
 			int index;  //special addressing index : GLIMPSE_ADDRESSING_VECTOR_SIZE <== '[#]' ; GLIMPSE_ADDRESSING_VECTOR_VARIABLE_INDEX <=='[?]'
@@ -75,6 +79,7 @@ typedef struct _glimpse_address_operations{
 	} oper;
 } GlimpseAddressOperations_t;
 
+/* Types for an address inside a data instance */
 typedef struct _glimpse_address{
 	uint8_t count;
 	GlimpseAddressOperations_t op[GLIMPSE_MAX_ADDRESS_OPS];
@@ -157,4 +162,7 @@ static inline void* __glimpse_address_fetch__(void** data, GlimpseAddress_t* add
 	va_end(ap);
 	return current_data;
 }
+#ifdef __cplusplus
+}
+#endif
 #endif

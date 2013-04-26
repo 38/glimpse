@@ -19,6 +19,10 @@
 	
 #ifndef __FIXLENGTH_H__
 #define __FIXLENGTH_H__
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 const char* glimpse_integer_fixlength_hex_i8(const char* str, void* ret, void* data, void *thread_data);
 const char* glimpse_integer_fixlength_hex_u8(const char* str, void* ret, void* data, void *thread_data);
 const char* glimpse_integer_fixlength_hex_i16(const char* str, void* ret,void *data, void *thread_data);
@@ -55,4 +59,7 @@ const char* glimpse_integer_fixlength_bin_u32(const char* str, void* ret, void* 
 const char* glimpse_integer_fixlength_bin_i64(const char* str, void* ret, void* data, void *thread_data);
 const char* glimpse_integer_fixlength_bin_u64(const char* str, void* ret, void* data, void *thread_data);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

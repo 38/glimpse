@@ -25,6 +25,10 @@
 #include <glimpse/future.h>
 #include <glimpse/stack.h>
 #include <glimpse/def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 typedef struct _glimpse_thread_data{
 #ifdef HANDLER_STACK
 	GlimpseStack_t stack;
@@ -37,4 +41,7 @@ typedef struct _glimpse_thread_data{
 GlimpseThreadData_t* glimpse_thread_data_new();
 void glimpse_thread_data_free(GlimpseThreadData_t* data);
 void glimpse_thread_data_init(GlimpseThreadData_t* data);
+#ifdef __cplusplus
+}
+#endif
 #endif

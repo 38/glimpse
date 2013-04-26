@@ -33,6 +33,10 @@
 #include <glimpse/tree.h>
 #include <glimpse/retval.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef TYPEDESC_MAX_TYPEGROGUPS
 #	define TYPEDESC_MAX_TYPEGROUPS 1024
 #endif
@@ -200,7 +204,11 @@ typedef struct _glimpse_type_group{
 
 /* type descriptor manipulation */
 GlimpseTypeDesc_t* glimpse_typesystem_typedesc_new(size_t sz_properties);
-GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type);
+GlimpseTypeDesc_t* glimpse_typesystem_typedesc_dup(GlimpseTypeDesc_t* type) 
+#ifndef USE_DUP_TYPEDESC
+	__attribute__((deprecated))
+#endif
+;
 void glimpse_typesystem_typedesc_free(GlimpseTypeDesc_t* typedesc);
 int glimpse_typesystem_typedesc_set_property(GlimpseTypeDesc_t* desc ,const char* key, const char* value);
 
@@ -210,7 +218,7 @@ size_t glimpse_typesystem_sizeof_typegroup_prop(const char* name);
 
 /* handler operations */
 void glimpse_typesystem_typehandler_free(GlimpseTypeHandler_t* handler); 
-void* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler);
+GlimpseTypePoolNode_t* glimpse_typesystem_typehandler_alloc_instance(GlimpseTypeHandler_t* handler);
 static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandler_t* handler);
 static inline void glimpse_typesystem_typehandler_free_instance(void* instance);
 #ifdef LAZY_INSTANCE
@@ -358,6 +366,9 @@ static inline int glimpse_typesystem_typehandler_fianlize_instance(void* instanc
 	int rc = GLIMPSE_ESUCCESS;
 	if(node->handler->finalize) rc = node->handler->finalize(instance, node->handler->finalize_data);
 	return rc;
+}
+#endif
+#ifdef __cplusplus
 }
 #endif
 #endif

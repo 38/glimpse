@@ -2,42 +2,47 @@ The Glimpse Plugin System
 
 
 Introduction
+========
+The Glimpse Plugin System use a group of functions called API as the interface
+to plugin. The plugin call functions API defined to manipulate types, data,
+structure, etc. The API function converts the API call into function calls
+defined inside Glimpse core code. 
 
-The Glimpse Plugin System is a flexible plugin system, which is the bridge of
-the API and the User plugin. The user can develop different versions of API
-for different use. And in the plugin the develop should indicate which version
-of API is used for communication.
-Both API developer and plugin developer can use the utils provided by the
-system to make the development easier.
+The Glimpse Plugin System is flexible. User can develop different versions of 
+API for different purpose. In addition, even Glimpse Updated ferquently, if the
+specified version of API will be stable, it's possible to use older plugin
+in a newer Glimpse without any modification. To archieve this, the plugin have
+to indicates which version of API does it use after it has been loaded.
+
+Finally,Both API developer and plugin developer can use the utils provided by the
+Plugin System to work easily.
 
 
 
-The protocol makes the comminication between plugin and API.
+The Plugin Protocol
+=========
+The plugin and Glimpse will communicate each other using a function address
+table defined by specified API after it have been initialized. The
+initialization protocol is a bit more complex.
 
-In the first stage, the dynamic library which contains the plugin will be
-loaded by dlopen. The system will find the symbol named `GetMetaData' to get
-the information of the plugin.
-As the GetMetaData has been called, the plugin have to allocate the memory for
-the meta data, and fill the fields. The type of meta data is
-GlimpsePluginMetaData_t which defined in the file include/plugin.h.
-	typedef struct _glimpse_plugin_metadata_t{
-		const char* Name;
-		const char* APIVersion;	//which groups of API dose the plugin request
-		GlimpsePluginVersion Version;	    //version of the plugin major.minor.revisionin
-		char ** Dependency;		//define the dependency of the plugin in 
-								//e.g.: plugin A.Dependency = {"B@3.1.2","C@3.0.5",NULL}
-		char data[0];			/*data used for specified version of API*/
-		/* DO NOT add any defination here */
-	}GlimpsePluginMetaData_t;
-The field data contains information and address table that need by specified
-version of API. A address table for communication is located there. The plugin
-should fill the address of functions which are used as callbacks from the API.
+It can be devided into four stages.
 
-In the second stage, the system will ask API to initialize the plugin, fill
-the function addresses of API calls. Then the system will resolve the dependency 
-of the plugin, find the plugins this plugin needed for initilaize and initialize 
-them. Finally finish the intialize of the plugin.
+1) Load the dymanic library. The Plugin System will find the library
+named 'lib<your plugin name>.so' in pathes specified in the string array
+glimpse_pluginloader_path, which end with a NULL pointer. After the plugin
+has been found, plugin loader will call dl_open to load the dymanic library
 
-In both plugin and API, meta->data are used as a address table for communicate
-each other.
+2) Request plugin infomation. The Plugin System will lookfor the symbol named
+'GetMetaData', then call the symbol to obtain information about the plugin,
+including name, version and dependency. In this stage the plugin will also
+allocate the memory used for API Function Table and fill plugin callbacks into
+the table.
+
+3) Resolve dependency. The framework will check the dependency, and load the
+plugin it depens. If any error occur in this stage, the loaded will return a
+GLIMPSE_EDEPENS indicates the dependency can not be satisfied.
+
+4) Call the Initilaize Function of API. In this stage, the API will initialize
+the plugin, fill entry addresses of API funtions in API Function Table, and
+finally finish the process.
 

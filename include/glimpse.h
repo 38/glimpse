@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2013 Hao Hou <ghost89413@gmail.com>
  * 
  * This file is part of Glimpse, a fast, flexible key-value scanner.

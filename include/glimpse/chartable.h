@@ -27,6 +27,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE
 #	define GLIMPSE_CHARTABLE_CONFLICT_TOLERANCE 1 /* the max chain length allowed */
 #endif
@@ -53,5 +58,8 @@ GlimpseCharTable_t* glimpse_chartable_new();
 void glimpse_chartable_free(GlimpseCharTable_t* table);
 int  glimpse_chartable_insert(GlimpseCharTable_t* table, uint8_t key ,void* value);
 void*  glimpse_chartable_find(GlimpseCharTable_t* table, uint8_t key);
+#endif
+#ifdef __cplusplus
+}
 #endif
 #endif

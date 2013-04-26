@@ -19,7 +19,15 @@
 	
 #ifndef __VERSION_H__
 #define __VERSION_H__
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 extern const char* glimpse_name;
 extern const char* glimpse_version;
 extern const char* glimpse_configure; 
+#ifdef __cplusplus
+}
+#endif
 #endif

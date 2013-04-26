@@ -32,11 +32,16 @@
 #	define MAX_PLUGINS 256
 #endif
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 typedef struct _glimpse_plugin_handler{
 	int32_t index;
 	int32_t  initialized;
 	GlimpsePluginMetaData_t* MetaData;
 	GlimpseAPIMetaData_t* API;
+	char path[1024]; /* the path of plugin */
 	void* dl_handler;
 }GlimpsePluginHandler_t;
 
@@ -45,4 +50,7 @@ int glimpse_pluginloader_register_api(GlimpseAPIMetaData_t* API);
 int glimpse_pluginloader_load_plugin(const char* name);
 int glimpse_pluginloader_set_primary_plugin(const char* name);
 int glimpse_pluginloader_cleanup();
+#ifdef __cplusplus
+}
+#endif
 #endif

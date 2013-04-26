@@ -25,6 +25,10 @@
 #ifndef GLIMPSE_SCANNER_MAX_LOG_NUM
 #	define GLIMPSE_SCANNER_MAX_LOG_NUM 1024 /* the max number user can register log */
 #endif
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 typedef struct _glimpse_scanner_t{
 	uint16_t count;
 	GlimpseParseTree_t* log[GLIMPSE_SCANNER_MAX_LOG_NUM];   /* all log the parser use */
@@ -57,4 +61,7 @@ void glimpse_scanner_set_after_scan_callback(typeof(((GlimpseScanner_t*)NULL)->a
 void glimpse_scanner_init();
 void glimpse_scanner_cleanup();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

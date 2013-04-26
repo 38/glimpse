@@ -22,6 +22,11 @@
 #include <glimpse/future.h>
 #include <glimpse/typesystem.h>
 #include <glimpse/def.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 typedef struct _glimpse_data_instance_t GlimpseDataInstance_t;
 typedef struct _glimpse_type_handler GlimpseTypeHandler_t;
 /* member of each data instance */
@@ -65,4 +70,9 @@ static inline void* glimpse_data_instance_get(GlimpseDataInstance_t* instance, G
 	if(GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(instance->model) <= offset) return NULL;
 	return instance->data[offset];
 }
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

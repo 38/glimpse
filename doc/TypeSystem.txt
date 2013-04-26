@@ -1,41 +1,114 @@
 The Glimpse Type System
 
-The type system of Glimpse is a highly flexible framework. 
-==============================================================================
-First of all, there are few concept about the type system.
-1) type gourp
-	A type group is a set of type which are related. For example, `Integer'
-	is a type group, there are serval actual type in the group, such as
-	a signed 32 bit integer represented in decimal, a large integer
-	represented in binary, etc. 
-2) type properites
-	Type properites are the properties used for describing which type is
-	actually mentioned within a type group. For example, in the type group
-	`integer', we have properties, length, signed/unsigned, dec/hex/oct/bin.
-	In the type group of `date', the properties might be the format of the
-	date(yymmdd,mm-dd-yyyy, etc).
-3) type flags
-	Type type flags are additional properites that are common in all types.
-	There are four type flag, Vector, SubLog, Exptrapulate and Map. All type
-	flags are handlered by the framework, they are decorators for original
-	types.
-	Vector: indicates that it will be a vector of the type given in
-			the log.
-	SubLog: indicates there are key value structures. If the flag is set, the
-			type group and type proprieties will no longer meaningful.
-	Extrapulate: indicates the value will be extrapulated from other fields,
-				 this flag will prevent parse action for the field.
-	Map: indicates the type is a virtual value that maps the value of other
-		 points.
-4) type descriptor
-	Type descriptor describes which group the type belongs, the flags and the
-	properties of the type
-==============================================================================
-The build block of the type system are type plugins which uses the
-TypeDescAPI.  Type plugin might register a type group, define a parser
-generator, which according to the preporties of the type. 
-The plugin should implment the parser of specified type.
+Introduction
+======
+The Glimpse Type System manipulates memory and types, it provide generic
+interface to manipulates data in different types. It also manages memory
+automatically. So it's the curcial part of Glimpse System.
 
-The registered type group are stored in a type gourp list, and each time we
-can pass a type descriptor to a parser genrator to generate a gourp of function 
-that might used for parse the the log described in the descriptor
+Concepts
+======
+1) Type Descriptor
+Type Descriptor is data structure that descripts types. It's made up by three
+section, built-in type descriptor, built-in properties section and user
+hedefined properties section. 
+
+The built-in type descriptor is a integer number
+indicates which built-in type does the type belongs to, such as vector,
+sublog and map. If it's not a built-in type, this section will be
+GLIMPSE_TYPE_BUILTIN_TYPE_NONE, which indicates it's a user-defined type. 
+
+The built-in properties section contains the properies of built-in types, for
+example, for vector, the properties section constains a seperator, and a
+base-type which is type of the elements in the vector. If the built-in type
+indicates it's a user-defined type, the built-in type properties section will
+contains a string, indicates which *Type Group* does it belongs.
+
+The last section is user-defined properties section, which is avaible when the
+type is a user-defined type. The composition of properties section is
+determined by type group.
+
+2) Type Group
+Type group is a group of type, which is similar. Those types shares a common
+resolve function, which Glimpse used to determin the operation of the type.
+And a set_propery function to resolve user-defined type into a type
+descriptor.
+
+3) Type Handler
+Type handler is a group of operations used for data manipulation for a given
+type. The function glimpse_typesystem_query is used to convert the Type
+Descriptor into Type Handler. The handler contains few functions, alloc, init,
+parse, finalize, free and tostring. 
+
+alloc: Allocate memory for the data
+init:  Initialize memory before it has been used
+parse: Parse the text into the type, the core function of Glimpse :)
+finalize: Finalization after the memory been used
+free:  Free the memory
+tostring: Convert the type the handler operates into a human-readable form.
+
+Finally, the Type handler contains a object pool, which reuse the memory in
+order reduce the cost of allocating memory.
+
+5) Type Instance: A instance of some data type
+
+6) Type Alias: Alias a name with a type
+
+How does it works?
+=====
+First of all, user use the type parser to parse a string into a type
+descrptor. The syntax is of the string is quite simple:
+Type	:=	Alias|TypeDescription
+Alias	:=	`a type alias'
+TypeDescription	:=	(TypeGroupName|vecotr|sublog|map){Properties}
+Properties	:= empty|Properties, Key:Value
+
+For vector, the avaible properties are 'basetype' and 'seperator'.
+For map, the avaibale property 'target'
+For sublog, the avaibale property is 'name' which indicates the name of the
+log.
+
+For example, a vector seperated by ',' of signed integer, 16bit, decimal 
+representation, would be:
+	vector{
+		seperator:',' ,
+		basetype:
+			integer{
+				signed:true,
+				size:16,
+				format:dicimal
+			}
+	}
+
+Another example, a log format called 'userinfo', another log contains a field
+which use the format 'userinfo', can be represented as:
+	sublog{ name: userinfo }
+
+The set_propery function in Type Group is used to convert key-value based
+propery into its own format defined in user-define properties in the Type
+Descriptor.
+
+After we got a Type Descriptor, we can query the Type System, to obtain a
+handler, which contains right fucntions for data manipulation. If the type is
+a buit-in type, the handler will assign built-in function to handle that. If
+not, the function will look for type Type Group whose name is mentioned in the
+descriptor, and call its 'resolve' function to get the right handler. The
+'resolve' function use user-defined properties to determin which function
+should be pass.
+
+With the type handler, the type system can create a new data object. First,
+the system will check if there's some memory is not currently in use, if find
+some, the system will initliaze the memory and return the address of the
+memory, if not, the system will call the allocate function and then initalize
+it. 
+
+After the data used, the data will be recycled, and enqueue into a free list
+for next use. However, if enable the Lazy Instance feature, the object will
+hold the memory even after it's death. In this case, use should call the 
+cleanup function to make the object recycle all memory it occupied.
+
+Finally, when the program exits, you don't need release all memory for data
+object, because the system do it automaticlly.
+
+What you should do is to implement functions defined in data handler, hope you
+will enjoy it :)

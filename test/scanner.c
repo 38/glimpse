@@ -1,3 +1,4 @@
+#define USE_DUP_TYPEDESC
 #include <glimpse/pluginloader.h>
 #include <glimpse/scanner.h>
 #include <glimpse/init.h>
@@ -38,9 +39,9 @@ void case0()
 	prop->Signed = 1;
 	prop->Representation = GlimpseIntegerDec;
 	prop->Leading = prop->LeadingAfterSign = NULL;
-	glimpse_tree_insert(tree ,"value1", (td));
-	glimpse_tree_insert(tree ,"value2", (td));
-	glimpse_tree_insert(tree ,"value3", (td));
+	glimpse_tree_insert(tree ,"value1", glimpse_typesystem_typedesc_dup(td));
+	glimpse_tree_insert(tree ,"value2", glimpse_typesystem_typedesc_dup(td));
+	glimpse_tree_insert(tree ,"value3", glimpse_typesystem_typedesc_dup(td));
 	assert(0 == glimpse_tree_query(tree,"value1"));
 	assert(1 == glimpse_tree_query(tree,"value2"));
 	assert(2 == glimpse_tree_query(tree,"value3"));
@@ -93,7 +94,7 @@ void case1()
 	td->param.vector.basetype->builtin_type = GLIMPSE_TYPE_BUILTIN_SUBLOG;
 	td->param.vector.basetype->param.sublog.tree = glimpse_scanner_find_tree("mylog");
 	glimpse_tree_insert(tree, "a", td);
-	glimpse_tree_insert(tree, "b", (td));
+	glimpse_tree_insert(tree, "b", td);
 	glimpse_scanner_set_defualt_tree("sublogtest");
 	glimpse_scanner_set_before_scan_callback(NULL, NULL);
 	glimpse_scanner_set_after_scan_callback(case1_check, NULL);

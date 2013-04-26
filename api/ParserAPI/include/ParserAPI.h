@@ -25,6 +25,10 @@
 #include <glimpse/log.h>
 #include <glimpse/address.h>
 #include <glimpse/scanner.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 GlimpseAPIData(ParserAPI)
 	/*APIs*/
 	GlimpseAPIFunctions
@@ -125,4 +129,7 @@ GlimpseAPIDataEnd
 #	define PLUGIN_LOG_DEBUG(...)
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif

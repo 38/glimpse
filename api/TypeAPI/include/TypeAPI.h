@@ -22,6 +22,11 @@
 #include <glimpse/api.h>
 #include <glimpse/typesystem.h>
 #include <glimpse/log.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 GlimpseAPIData(TypeAPI)
 	//called by plugin
 	GlimpseAPIFunctions
@@ -55,11 +60,9 @@ void Glimpse_TypeAPI_init(void);
 #define StrDup(str) GlimpseAPICall(TypeAPI, StringDuplicate, str)
 #define Alias(t,n) GlimpseAPICall(TypeAPI, TypeAlias, t, n)
 
-#ifdef THREAD_SAFE
 #define DataLock(data) GlimpseAPICall(TypeAPI, DataObjLock, data)
 #define DataUnlock(data) GlimpseAPICall(TypeAPI, DataObjUnlock, data)
 #define DataTrylock(data) GlimpseAPICall(TypeAPI, DataObjTrylock, data)
-#endif
 
 #define PLUGIN_LOG(level,fmt,arg...) do{\
 	WriteLog(level,__FILE__,__FUNCTION__,__LINE__,fmt, ##arg);\
@@ -108,5 +111,8 @@ void Glimpse_TypeAPI_init(void);
 #	define PLUGIN_LOG_DEBUG(fmt,arg...) PLUGIN_LOG(DEBUG,fmt,##arg)
 #else
 #	define PLUGIN_LOG_DEBUG(...)
+#endif
+#ifdef __cplusplus
+}
 #endif
 #endif

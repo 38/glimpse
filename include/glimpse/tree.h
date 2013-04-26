@@ -31,6 +31,10 @@
 #	include <glimpse/chartable.h>
 #endif
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 typedef struct _glimpse_typedesc GlimpseTypeDesc_t;
 typedef struct _glimpse_type_handler GlimpseTypeHandler_t;
 typedef struct _glimpse_data_model_t GlimpseDataModel_t;
@@ -95,4 +99,7 @@ static inline GlimpseParserStatus_t glimpse_tree_scan(GlimpseParserStatus_t stat
 	return status->s.child[(uint8_t)ch];
 #endif
 }
+#ifdef __cplusplus
+}
+#endif
 #endif

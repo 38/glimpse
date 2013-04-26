@@ -20,6 +20,10 @@
 #ifndef __INTEGER_H__
 #define __INTEGER_H__
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 /* Define the properties of Integer type group */
 typedef struct _glimpse_integer_properties{
 	/*Describe the size of Integer */
@@ -50,4 +54,7 @@ typedef struct _glimpse_integer_properties{
 	/* Indicates the string of signed integer which located between the sign and the value part */
 	char* LeadingAfterSign;
 } GlimpseIntegerProperties_t;
+#ifdef __cplusplus
+}
+#endif
 #endif

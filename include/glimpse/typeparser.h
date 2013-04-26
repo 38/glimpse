@@ -24,6 +24,10 @@
 #ifndef GLIMPSE_MAX_TYPE_ALIAS
 #	define GLIMPSE_MAX_TYPE_ALIAS 10240
 #endif
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 /*
  * the syntax for type description:
  * $type: $typename|$typename $parameters
@@ -57,4 +61,7 @@ typedef struct _glimpse_type_alias_t{
 } GlimpseTypeAlias_t;
 GlimpseTypeDesc_t* glimpse_typeparser_parse_type(const char* text);
 int glimpse_typeparser_alias(GlimpseTypeDesc_t* desc, const char* name);
+#ifdef __cplusplus
+}
+#endif
 #endif

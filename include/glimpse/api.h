@@ -24,6 +24,13 @@
 
 #include <glimpse/future.h>
 #include <glimpse/def.h>
+
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+
 /* metadata of APIs */
 typedef struct _glimpse_api_metadata_t{
 	const char* APIVersion;  /*Version of API*/
@@ -42,5 +49,11 @@ typedef struct _glimpse_api_metadata_t{
 #define GlimpseAPIFunctionsEnd }api_functions;
 #define GlimpsePluginFunctions struct {
 #define GlimpsePluginFunctionsEnd }plugin_functions;
+
+#ifdef __cplusplus
+}
+#endif
+
 #include <glimpse/plugin.h>
+
 #endif

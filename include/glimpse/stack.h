@@ -23,6 +23,10 @@
 #include <typesystem.h>
 #include <def.h>
 #define GLIMPSE_MAX_STACK_DEPTH 1024   /* the max depth of parser recurrent */
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 typedef struct _glimpse_stack_Frame{
 	GlimpseTypeHandler_t* handler;  /* the type handler used for parse in this level */
 	uint8_t	ret_req:1;    /* if ret_req == 1, the parser will terminate unconditionally */
@@ -108,6 +112,9 @@ static inline typeof(((GlimpseTypeHandler_t*)NULL)->parse) glimpse_stack_get_par
 			break;
 	}
 	if(handler->parse) return handler->parse;
+}
+#endif
+#ifdef __cplusplus
 }
 #endif
 #endif

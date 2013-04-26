@@ -70,7 +70,6 @@ static GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* nam
 		if(strcmp(_glimpse_pluginloader_plugin_list[i]->MetaData->Name, name) == 0)
 			return _glimpse_pluginloader_plugin_list[i];
 	GlimpsePluginHandler_t* ret = (GlimpsePluginHandler_t*)malloc(sizeof(GlimpsePluginHandler_t));
-	char path[1024];
 	if(NULL == ret) goto ERR;
 	ret->MetaData = NULL;
 	ret->dl_handler = NULL;
@@ -79,16 +78,21 @@ static GlimpsePluginHandler_t* _glimpse_pluginloader_find_plugin(const char* nam
 	ret->initialized = 0;
 	for(i = 0; glimpse_pluginloader_path[i]; i ++)
 	{
-		snprintf(path, 1024, "%s/lib%s.so", glimpse_pluginloader_path[i], name);
-		if(0 == access(path, R_OK))
+		snprintf(ret->path, sizeof(ret->path), "%s/lib%s.so", glimpse_pluginloader_path[i], name);
+		if(0 == access(ret->path, R_OK))
 		{
-			if((ret->dl_handler = dlopen(path, RTLD_NOW)))
+			if((ret->dl_handler = dlopen(ret->path, RTLD_NOW)))
 			{
-				GLIMPSE_LOG_TRACE("using %s as plugin %s", path, name);
+				GLIMPSE_LOG_TRACE("using %s as plugin %s", ret->path, name);
 				return ret;
 			}
 			else
 				GLIMPSE_LOG_DEBUG("%s", dlerror());
+		}
+		snprintf(ret->path, sizeof(ret->path), "%s/plugin_%s.conf", glimpse_pluginloader_path[i], name);
+		if(0 == access(ret->path, R_OK))
+		{
+			//TODO parse conf file
 		}
 	}
 ERR:
@@ -108,7 +112,7 @@ int glimpse_pluginloader_set_primary_plugin(const char* name)
 		}
 	return GLIMPSE_ENOTFOUND;
 }
-typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(void);
+typedef GlimpsePluginMetaData_t* (*GetMetaData_proc)(const char* path);
 static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handler)
 {
 	int errval = GLIMPSE_EINVAILDARG;
@@ -121,7 +125,7 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 	if(NULL == proc) goto ERR_BEFORE_ENQUEUED;
 	
 	errval = GLIMPSE_EUNKNOWN;
-	handler->MetaData = proc();
+	handler->MetaData = proc(handler->path);
 	if(NULL == handler->MetaData) goto ERR_BEFORE_ENQUEUED;
 
 	errval = GLIMPSE_EINVAILDARG;

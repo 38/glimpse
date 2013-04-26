@@ -24,6 +24,10 @@
 #ifndef GLIMPSE_PROFILER_MAX_WATCHER
 #	define GLIMPSE_PROFILER_MAX_WATCHER 1024
 #endif
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 uint64_t glimpse_profiler_rdtsc();
 typedef struct _glimpse_profiler_watcher_t{
 	uint8_t initialized;
@@ -60,4 +64,7 @@ void glimpse_profiler_watcher_init(volatile GlimpseProfilerWatcher_t* watcher, c
 #	define GLIMPSE_STATEMENT_PROFILER(stm) stm
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif

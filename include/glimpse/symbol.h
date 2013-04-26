@@ -28,7 +28,14 @@
 #ifndef GLIMPSE_SYMBOL_MAX_SYMBOL_LENGTH
 #	define GLIMPSE_SYMBOL_MAX_SYMBOL_LENGTH 128
 #endif
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 void glimpse_symbol_init();
 int glimpse_symbol_exportsymbol(const char* symname, void* address);
 void* glimpse_symbol_importsymbol(const char* symname);
+#ifdef __cplusplus
+}
+#endif
 #endif
