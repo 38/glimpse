@@ -183,7 +183,7 @@ static int _glimpse_pluginloader_initilaize_plugin(GlimpsePluginHandler_t* handl
 		for(j = 0; j < 3; j ++)
 			if(dep_handler->MetaData->Version[j] != min_version[j])
 			{
-				if(dep_handler->MetaData->Version[j] < vercode[j]) 
+				if(dep_handler->MetaData->Version[j] < min_version[j]) 
 				{
 					GLIMPSE_LOG_ERROR("plugin %s requires plugin %s in version %d.%d.%d, but got %d.%d.%d",
 									  handler->MetaData->Name,

@@ -1,0 +1,20 @@
+#!PYTHON_INTERPRETER_PATH
+import sys
+import argparse
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("package", metavar = "Pacakge", type=str, nargs = 1, help = "glimpse/plugin/APIName")
+	parser.add_argument("--cflags", action = 'store_true')
+	parser.add_argument("--libs", action = 'store_true')
+	res = parser.parse_args()
+	s = ""
+	if res.package == "glimpse":
+		if res.libs:   s += "-L GLIMPSE_LIBRARY_PATH -lglimpse -ldl -lpthread "
+		if res.cflags: s += "-I GLIMPSE_INCLUDE_PATH "
+	elif res.package == "plugin":
+		if res.libs:   s += "-shared"
+		if res.cflags: s += "-fPIC -I GLIMPSE_LIBRARY_PATH -I GLIMPSE_LIBRARY_PATH/plugin "
+	else:
+		if res.libs  : s += "-L GLIMPSE_INCLUDE_PATH -l%s "%res.package[0]
+		if res.cflags: s += "-I GLIMPSE_INCLUDE_PATH -I GLIMPSE_INCLUDE_PATH/%s "%res.package[0]
+	print s
