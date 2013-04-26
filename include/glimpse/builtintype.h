@@ -32,6 +32,7 @@ int glimpse_builtintype_vector_free(void* data, void* userdata);
 const char* glimpse_builtintype_vector_parse(const char* text, void* result, void* user_data, void* thread_data);
 char* glimpse_builtintype_vector_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size);
 
+
 /*sub log interface */
 void* glimpse_builtintype_sublog_alloc(void* userdata);
 int glimpse_builtintype_sublog_init(void* data, void* userdata);
@@ -39,4 +40,9 @@ int glimpse_builtintype_sublog_finalize(void* data, void* userdata);
 int glimpse_builtintype_sublog_free(void* data, void* userdata);
 const char* glimpse_builtintype_sublog_parse(const char* text, void* result, void* user_data, void* thread_data);
 char* glimpse_builtintype_sublog_tostring(GlimpseTypeHandler_t* type, char* buffer, size_t size);
+
+#ifdef LAZY_INSTANCE
+int glimpse_builtintype_vector_cleanup(void* data, void* userdata);
+int glimpse_builtintype_sublog_cleanup(void* data, void* userdata);
+#endif
 #endif

@@ -51,6 +51,7 @@ static inline void* glimpse_vector_get(GlimpseVector_t* vector, int idx)
 	return (void*)(vector->data + vector->elem_size * idx);
 }
 #ifdef LAZY_INSTANCE
+void glimpse_vector_finalize(GlimpseVector_t* vector);
 static inline void* glimpse_vector_next_free_space(GlimpseVector_t* vector)
 {
 	if(vector->size < vector->max_size) return (void*)(vector->data + vector->elem_size * vector->size);

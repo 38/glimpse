@@ -43,12 +43,17 @@ GlimpseVector_t* glimpse_vector_new(size_t elem_size)
 }
 void glimpse_vector_init(GlimpseVector_t* vector)
 {
-#ifdef LAZY_INSTANCE
-	if(vector->max_size < vector->size) 
-		vector->max_size = vector->size;
-#endif
 	vector->size = 0;
 }
+
+#ifdef LAZY_INSTANCE
+void glimpse_vector_finalize(GlimpseVector_t* vector)
+{
+	if(vector->max_size < vector->size) 
+		vector->max_size = vector->size;
+	/*record the max size have ever been allocated */
+}
+#endif
 void glimpse_vector_free(GlimpseVector_t* vector)
 {
 	if(NULL == vector) return;

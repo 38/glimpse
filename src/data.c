@@ -118,3 +118,16 @@ void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance)
 		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
 #endif /*LAZY_INSTANCE*/
 }
+#ifdef LAZY_INSTANCE
+void glimpse_data_instance_cleanup(GlimpseDataInstance_t* instance)
+{
+	if(NULL == instance) return;
+	GlimpseDataModel_t* model = instance->model;
+	GlimpseDataMember_t* p;
+	for(p = model->members; p; p = p->next)
+	{
+		glimpse_typesystem_typehandler_free_instance(instance->data[p->idx]);
+		instance->data[p->idx] = NULL;
+	}
+}
+#endif

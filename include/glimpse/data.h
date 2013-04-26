@@ -53,6 +53,9 @@ GlimpseDataInstance_t* glimpse_data_instance_new(GlimpseDataModel_t* model);
 void glimpse_data_instance_free(GlimpseDataInstance_t* instance);
 int glimpse_data_instance_init(GlimpseDataInstance_t* instance);
 void glimpse_data_instance_finalize(GlimpseDataInstance_t* instance);
+#ifdef LAZY_INSTANCE
+void glimpse_data_instance_cleanup(GlimpseDataInstance_t* instance);
+#endif
 #define GLIMPSE_DATA_MODEL_NUMBER_OF_MEMBERS(model) (model->members?model->members->idx+1:0)
 
 static inline void* glimpse_data_instance_get(GlimpseDataInstance_t* instance, GlimpseDataOffset_t offset)

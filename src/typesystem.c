@@ -179,16 +179,22 @@ GlimpseTypeHandler_t* glimpse_typesystem_query(GlimpseTypeDesc_t* type)
 #ifdef STRING_SEPERATOR_SUPPORT
 			if(NULL == handler.vector_parser_param[0]->sep) goto ERR_VEC;
 #endif
+			//setup data
 			handler.init_data = NULL;
 			handler.free_data = type->param.vector.basetype;
 			handler.alloc_data = NULL;
 			handler.finalize_data = type->param.vector.basetype;
+			// setup handlers 
 			handler.parse = glimpse_builtintype_vector_parse;
 			handler.init = glimpse_builtintype_vector_init;
 			handler.free = glimpse_builtintype_vector_free;
 			handler.alloc = glimpse_builtintype_vector_alloc;
 			handler.finalize = glimpse_builtintype_vector_finalize;
 			handler.tostring = glimpse_builtintype_vector_tostring;
+#ifdef LAZY_INSTANCE
+			handler.cleanup_data = type->param.vector.basetype;
+			handler.cleanup = glimpse_builtintype_vector_cleanup;
+#endif
 			break;
 ERR_VEC:
 			if(handler.vector_parser_param[0]) free(handler.vector_parser_param[0]);
@@ -207,6 +213,10 @@ ERR_VEC:
 			handler.init  = glimpse_builtintype_sublog_init;
 			handler.finalize = glimpse_builtintype_sublog_finalize;
 			handler.tostring = glimpse_builtintype_sublog_tostring;
+#ifdef LAZY_INSTANCE
+			handler.cleanup_data = NULL;
+			handler.cleanup = glimpse_builtintype_sublog_cleanup;
+#endif
 			break;
 		case GLIMPSE_TYPE_BUILTIN_MAP:
 			//TODO: handler for map 

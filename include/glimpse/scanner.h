@@ -47,6 +47,9 @@ int glimpse_scanner_set_defualt_tree(const char* name);  /* set the log you want
 GlimpseParseTree_t* glimpse_scanner_get_default_tree();
 void glimpse_scanner_set_before_scan_callback(typeof(((GlimpseScanner_t*)NULL)->before_scan) callback, void* userdata);
 void glimpse_scanner_set_after_scan_callback(typeof(((GlimpseScanner_t*)NULL)->after_scan) callback, void* userdata);
+
+#define GLIMPSE_SCANNER_DEFAULT 0
+#define GLIMPSE_SCANNER_CLEANUP 1
 /* you can use the function defined in typesystem.h and tree.h to add some key to parse 
  * and define its type */
 

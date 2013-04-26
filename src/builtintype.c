@@ -52,8 +52,26 @@ int glimpse_builtintype_vector_finalize(void* data, void* userdata)
 		glimpse_typesystem_typehandler_free_instance(*addr);
 #endif
 	}
+#ifdef LAZY_INSTANCE
+	glimpse_vector_finalize(vec);
+#endif
 	return 0;
 }
+#ifdef LAZY_INSTANCE
+int glimpse_builtintype_vector_cleanup(void* data, void* uesrdata)
+{
+	int i;
+	GlimpseVector_t* vec = (GlimpseVector_t*) data;
+	vec->max_size = 0; 
+	for(i = 0; i < vec->size; i ++)
+	{
+		void** addr = (void**)glimpse_vector_get(vec, i);
+		if(NULL == addr) continue;
+		glimpse_typesystem_typehandler_free_instance(*addr);
+	}
+	return 0;
+}
+#endif
 int glimpse_builtintype_vector_free(void* data, void* userdata)  
 {
 	glimpse_vector_free((GlimpseVector_t*)data);
@@ -172,6 +190,13 @@ int glimpse_builtintype_sublog_finalize(void* data, void* userdata)
 	glimpse_data_instance_finalize((GlimpseDataInstance_t*)data);
 	return 0;
 }
+#ifdef LAZY_INSTANCE
+int glimpse_builtintype_sublog_cleanup(void* data, void* userdata)
+{
+	glimpse_data_instance_cleanup((GlimpseDataInstance_t*)data);
+	return 0;
+}
+#endif
 const char* glimpse_builtintype_sublog_parse(const char* text, void* result, void* user_data, void* thread_data)
 {
 	GlimpseParseTree_t* tree = (GlimpseParseTree_t*)user_data;

@@ -171,6 +171,15 @@ typedef struct _glimpse_type_handler{
 	void* finalize_data;
 	int (*finalize)(void* data, void* user_data);
 
+#ifdef LAZY_INSTANCE
+	/* for lazy instance, the instance will hold the memory even
+	 * after its death. So a cleanup function is needed to release
+	 * the memory, if user want to reduce the memory usage
+	 */
+	void* cleanup_data;
+	int (*cleanup)(void* data, void* user_data); /* the cleanup function only release data instance, but not despose/finalize them */
+#endif
+
 	/* human readable type, for debug purpose */
 	char* (*tostring)(struct _glimpse_type_handler* type, char* buffer, size_t size);
 	
@@ -265,6 +274,12 @@ static inline void* glimpse_typesystem_typehandler_new_instance(GlimpseTypeHandl
 #endif
 	return ret->instance;
 }
+/* when lazy instance is on, the free function will be called only after user requested do that 
+ * the finalize function do not call free function and return memory to memory pool
+ * it simple hold the memory for next cycle.
+ * And when user request a cleanup, the free function will be called and use the handler->cleanup
+ * function to recycle it's memory
+ */
 static inline void glimpse_typesystem_typehandler_free_instance(void* instance)
 {
 	if(NULL == instance) return;
@@ -274,7 +289,15 @@ static inline void glimpse_typesystem_typehandler_free_instance(void* instance)
 #ifdef THREAD_SAFE
 	pthread_mutex_lock(&node->handler->pool.mutex);
 #endif
+	/* if lazy instance is off, the finalize function will return the memory to the pool
+	 * so it's ok to not clean up it.
+	 * however, when the option is on, the finalize function do not return memory, so
+	 * if you want to clean the memory a cleanup function is needed 
+	 */
 	if(node->handler->finalize) node->handler->finalize(instance, node->handler->finalize_data);
+#ifdef LAZY_INSTANCE
+	if(node->handler->cleanup) node->handler->cleanup(instance, node->handler->cleanup_data);
+#endif
 	node->occupied = 0;
 #ifdef THREAD_SAFE
 	pthread_mutex_unlock(&node->mutex);
