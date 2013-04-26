@@ -1,9 +1,16 @@
-
 Glimpse
 =======
 A generic,high-performance key-value log processing framework written in C.
 
-#How to build?
+#Build Glimpse
+
+prequisite:
+
+	cmake
+
+	libreadline
+	
+How to build?
 
 	1) run `cmake .' to generate Makefile
 
@@ -15,14 +22,6 @@ After you build Glimpse, you can type 'make install' to install glimpse onto you
 
 If you want to remove Glimpse, run the script 'scripts/uninstall.sh ${INSTALL_PREFIX}'
 
-#Build Glimpse
-
-prequisite:
-
-	cmake
-
-	libreadline
-	
 #Try Glimpse
 
 You can try the framework with the shell, glimpse-cli.
@@ -49,5 +48,3 @@ Steps to compiling examples/plugin.c into a loadable Plugin
 	Glimpse> import plugin
 	F[myinit@plugin.c:  4] Hello, Glimpse!
 	0.299409 ms
-	
-	
