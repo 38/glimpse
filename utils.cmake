@@ -1,6 +1,7 @@
 
 SET(CMAKE_USE_RELATIVE_PATHS ON)
 #include directories
+include("FindPythonInterp")
 include_directories("include")
 include_directories(".")
 #api

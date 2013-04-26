@@ -49,14 +49,7 @@ install_api(api ParserAPI)
 install_plugin(plugin integer)
 install_targets(/lib/glimpse/ glimpse)
 install_targets(/bin glimpse-cli)
-
-#glimpse-config
-set(python_path "/usr/bin/python")
-exec_program(sed ARGS 
-	-e "s:PYTHON_INTERPRETER_PATH:${python_path}:g" 
-	-e "s:GLIMPSE_INCLUDE_PATH:${CMAKE_INSTALL_PREFIX}/include/glimpse:g"
-	-e "s:GLIMPSE_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib/glimpse:g"
-	script/glimpse-config.txt OUTPUT_VARIABLE GLIMPSE_CONFIG_PY)
+install(CODE "exec_program(sh ARGS scripts/install-glimpse-config.sh ${PYTHON_EXECUTABLE} ${CMAKE_INSTALL_PREFIX})")
 
 add_plugin(test/plugin testapi_plugin test/api/testapi test)
 add_utest(log)

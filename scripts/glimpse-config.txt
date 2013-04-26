@@ -3,18 +3,24 @@ import sys
 import argparse
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument("package", metavar = "Pacakge", type=str, nargs = 1, help = "glimpse/plugin/APIName")
+	parser.add_argument("package", metavar = "Pacakge", type=str, nargs = '+', help = "glimpse/plugin/APIName")
 	parser.add_argument("--cflags", action = 'store_true')
 	parser.add_argument("--libs", action = 'store_true')
+	parser.add_argument("--plugin", action = 'store_true')
 	res = parser.parse_args()
 	s = ""
-	if res.package == "glimpse":
-		if res.libs:   s += "-L GLIMPSE_LIBRARY_PATH -lglimpse -ldl -lpthread "
-		if res.cflags: s += "-I GLIMPSE_INCLUDE_PATH "
-	elif res.package == "plugin":
-		if res.libs:   s += "-shared"
-		if res.cflags: s += "-fPIC -I GLIMPSE_LIBRARY_PATH -I GLIMPSE_LIBRARY_PATH/plugin "
-	else:
-		if res.libs  : s += "-L GLIMPSE_INCLUDE_PATH -l%s "%res.package[0]
-		if res.cflags: s += "-I GLIMPSE_INCLUDE_PATH -I GLIMPSE_INCLUDE_PATH/%s "%res.package[0]
+	if res.plugin:
+		if res.libs: s += "-shared "
+		if res.cflags: s += "-fPIC "
+	for pack in res.package:
+		if pack == "glimpse":
+			if res.libs:   
+				s += "-LGLIMPSE_LIBRARY_PATH -ldl -lpthread "
+				if not res.plugin: s += "-lglimpse "
+			if res.cflags: s += "-IGLIMPSE_INCLUDE_PATH "
+		else:
+			if res.libs  : 
+				s += "-LGLIMPSE_INCLUDE_PATH "
+				if not res.plugin: s += "-l%s "%res.package[0]
+			if res.cflags: s += "-IGLIMPSE_INCLUDE_PATH -IGLIMPSE_INCLUDE_PATH/%s "%pack
 	print s
